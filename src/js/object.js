@@ -1,7 +1,7 @@
 import { Vector2D } from './vector.js';
 
 import { RectangleGeometry } from './geometry.js' ;
-import { ArmMaterial } from './material.js';
+import { ArmMaterial, BucketMaterial } from './material.js';
 import { GravityDynamic, BottomWorldBoundDynamic } from './dynamics.js';
 
 class Object {
@@ -35,6 +35,13 @@ class Object {
 		this.centreOfRotation = this.geometry.relativeCentreOfMass;
 	}
 
+	connect(_other, _relConnPosSelf, _relConnPosOther, _connectorClass) {
+		let conn = new _connectorClass(this, _other, _relConnPosSelf, _relConnPosOther);
+		this.dynamics.push(conn.dynamicA);
+		_other.dynamics.push(conn.dynamicB);
+	}
+
+
 	addDynamic(_dynamicClass) {
 		let dynamic = new _dynamicClass(this);
 		this.dynamics.push(dynamic);
@@ -61,16 +68,13 @@ class Object {
 		let perpendicular = _force.projectOnTo(delta.perpendicular)
 		// let parallel = _force.projectOnTo(delta);
 
-		console.log(_force, delta.perpendicular, _force.dotProduct(delta.perpendicular))
-
 		this.netTorque += _force.dotProduct(delta.perpendicular);
 		// this.netForce.add(parallel);
 		if (!this.#positionPinned) this.netForce.add(_force); // Correct?
 
-		App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(0.01), '#aaa');
-		App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(0.01), '#0f0');
+		// App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(0.01), '#aaa');
+		// App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(0.01), '#0f0');
 		// App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(0.01), '#00f');
-
 	}
 
 
@@ -80,15 +84,14 @@ class Object {
 		this.velocity.add(transAcc.copy().scale(_dt));
 		this.position.add(this.velocity.copy().scale(_dt));
 
-		console.log('nt', this.netTorque);
 
 		let angularAcc = this.netTorque / this.inertia;
 		this.angularVelocity += angularAcc * _dt
 		this.angle += this.angularVelocity * _dt
 
 
-		App.renderer.drawVector(this.position.copy().add(this.centreOfRotation.copy()), new Vector2D(0, -5), '#fa0');
-		App.renderer.drawVector(this.position.copy(), new Vector2D(0, -5), '#af0');
+		// App.renderer.drawVector(this.position.copy().add(this.centreOfRotation.copy()), new Vector2D(0, -5), '#fa0');
+		// App.renderer.drawVector(this.position.copy(), new Vector2D(0, -5), '#af0');
 
 	}
 }
@@ -110,6 +113,16 @@ export class ArmObject extends Object {
 	}
 }
 
+
+export class BucketObject extends Object {
+	constructor({position, size, angle = 0}) {
+		super(new RectangleGeometry(size), new BucketMaterial);
+		this.position = position;
+		this.angle = angle;
+		this.addDynamic(GravityDynamic);
+		this.centreOfRotation = new Vector2D(size.x / 2, 0);
+	}
+}
 
 
 

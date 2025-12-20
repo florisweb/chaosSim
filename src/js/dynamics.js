@@ -1,6 +1,6 @@
 import { Vector2D } from './vector.js';
 
-class Dynamic {
+export class Dynamic {
 	_object;
 	order = 0; // Higher is later
 	constructor(_object) {
