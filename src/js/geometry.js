@@ -49,19 +49,22 @@ export class RectangleGeometry {
 	}
 
 	drawShape(ctx, _position, _angle, _centreOfRotation, scalar) {
-		let topLeft = _centreOfRotation.copy().scale(-1).rotate(_angle).add(_position).multiply(scalar);
+		let topLeft = _centreOfRotation.copy().scale(-1).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
+
+
 		let topRight = new Vector2D(
 			this.diagonal.x - _centreOfRotation.x,
 			-_centreOfRotation.y,
-		).rotate(_angle).add(_position).multiply(scalar);
+		).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
+
 		let bottomRight = new Vector2D(
 			this.diagonal.x - _centreOfRotation.x,
 			this.diagonal.y - _centreOfRotation.y,
-		).rotate(_angle).add(_position).multiply(scalar);;
+		).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
 		let bottomLeft = new Vector2D(
 			-_centreOfRotation.x,
 			this.diagonal.y - _centreOfRotation.y,
-		).rotate(_angle).add(_position).multiply(scalar);;
+		).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
 
 		ctx.beginPath();
 		ctx.moveTo(topLeft.x, topLeft.y);

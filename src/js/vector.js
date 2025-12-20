@@ -16,7 +16,9 @@ class BaseVector {
 		return this.dotProduct(this);
 	}
 	get unitary() {
-		return this.copy().scale(1 / this.length);
+		let len = this.length;
+		if (len === 0) return this.copy();
+		return this.copy().scale(1 / len);
 	}
 
 	constructor() {
@@ -29,6 +31,7 @@ class BaseVector {
 
 
 	projectOnTo(_Vec) {
+		if (_Vec.unitary.lengthSquared === 0) return this.copy();
 		return _Vec.unitary.scale(this.dotProduct(_Vec.unitary));
 	}
 }

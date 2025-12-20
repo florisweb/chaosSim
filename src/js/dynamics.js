@@ -18,7 +18,11 @@ export class GravityDynamic extends Dynamic {
 	applyForce(_dt) {
 		let mass = this._object.mass;
 
-		this._object.applyForce(this._object.geometry.relativeCentreOfMass.copy().rotate(this._object.angle), new Vector2D(0, 1).scale(mass * GravityDynamic.g));
+		// this._object.applyForce(this._object.geometry.relativeCentreOfMass.copy().rotate(this._object.angle), new Vector2D(0, 1).scale(mass * GravityDynamic.g));
+		this._object.applyForce(
+			this._object.centreOfRotation.difference(this._object.geometry.relativeCentreOfMass)
+			.copy().rotate(this._object.angle).add(this._object.centreOfRotation)
+			, new Vector2D(0, 1).scale(mass * GravityDynamic.g));
 	}
 }
 

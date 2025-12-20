@@ -8,6 +8,7 @@ class Object {
 	geometry;
 	material;
 	dynamics = [];
+	constraints = [];
 
 	position = new Vector2D(0, 0);
 	velocity = new Vector2D(0, 0);
@@ -31,8 +32,7 @@ class Object {
 		this.geometry = _geometry;
 		this.material = _material;
 
-		// this.n#onRotCentreOfRotation = this.geometry.relativeCentreOfMass;
-		this.centreOfRotation = new Vector2D(0, 0);
+		this.centreOfRotation = this.geometry.relativeCentreOfMass;
 	}
 
 	addDynamic(_dynamicClass) {
@@ -53,16 +53,15 @@ class Object {
 	applyForce(_relPosition, _force) { // _relPos: already rotated
 		let delta = this.centreOfRotation.difference(_relPosition);
 		let perpendicular = _force.projectOnTo(delta.perpendicular)
-		let parallel = _force.projectOnTo(delta);
+		// let parallel = _force.projectOnTo(delta);
 
-		// console.log(_relPosition, _force)
 		this.netTorque += _force.dotProduct(delta.perpendicular);
 		// this.netForce.add(parallel);
-		
+		this.netForce.add(_force); // Correct?
+
 		App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(0.01), '#aaa');
 		App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(0.01), '#0f0');
-		App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(0.01), '#00f');
-			// this.netTorque += subTorque;
+		// App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(0.01), '#00f');
 
 	}
 
@@ -77,6 +76,10 @@ class Object {
 		this.angularVelocity += angularAcc * _dt
 		this.angle += this.angularVelocity * _dt
 
+
+		App.renderer.drawVector(this.position.copy().add(this.centreOfRotation.copy()), new Vector2D(0, -5), '#fa0');
+		App.renderer.drawVector(this.position.copy(), new Vector2D(0, -5), '#af0');
+
 	}
 }
 
@@ -89,6 +92,8 @@ export class ArmObject extends Object {
 		super(new RectangleGeometry(size), new ArmMaterial);
 		this.position = position;
 		this.angle = angle;
+		
+		this.centreOfRotation = size.copy().scale(0)
 		this.addDynamic(GravityDynamic);
 		// this.addDynamic(BottomWorldBoundDynamic);
 	}
