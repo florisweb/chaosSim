@@ -1,0 +1,21 @@
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	padding: 0;
+	transition: opacity .7s;
+	background: #111;
+}
+
+#worldCanvas {
+	position: relative;
+	left: 0;
+	top: 0;
+	width: 100vh;
+	height: 100vh;
+}
+
+#temperatureHolder {
+	color: #aaa;
+}
