@@ -4,7 +4,7 @@ class Geometry {
 	get area() {
 		return 1
 	}
-	get relativeCentreOfGravity() {
+	get relativeCentreOfMass() {
 		return new Vector2D(0, 0)
 	}
 	calcInertia(_centreOfRotation) {
@@ -28,12 +28,12 @@ export class RectangleGeometry {
 	get area() {
 		return this.diagonal.x * this.diagonal.y;
 	}
-	get relativeCentreOfGravity() {
+	get relativeCentreOfMass() {
 		return this.diagonal.copy().scale(0.5);
 	}
 
 	calcInertia(_centreOfRotation) {
-		let rotCentreOffset = this.relativeCentreOfGravity.difference(_centreOfRotation);
+		let rotCentreOffset = this.relativeCentreOfMass.difference(_centreOfRotation);
 		let rotCentreDist = rotCentreOffset.length;
 		// Assuming centreOfRotation is relativeCentreOfGravity
 

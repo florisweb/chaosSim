@@ -1,7 +1,6 @@
 import { Vector2D, Vector3D } from './vector.js';
 import App from './app.js';
 // import { GPU } from 'gpu.js';
-import { ArmObject } from './object.js';
 
 
 export default class Simulation {
@@ -9,13 +8,12 @@ export default class Simulation {
 	world = [];
 	objects = [];
 	config = {
-		maxDt: 0.01
+		maxDt: 0.02
 	}
 	
 
 	constructor({size}) {
 		this.size = size;
-		this.objects.push(new ArmObject({position: new Vector2D(10, 10), size: new Vector2D(10, 1)}))
 	}
 
 	
@@ -31,7 +29,7 @@ export default class Simulation {
 		}
 		for (let obj of this.objects)
 		{
-			obj.applyForces(dt);
+			obj.applyNetForceConsequences(dt);
 		}
 
 		this.#lastUpdate = new Date();

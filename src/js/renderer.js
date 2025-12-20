@@ -61,7 +61,7 @@ export default class Renderer {
 
 	drawVector(_start, _delta, _color = '#f00') {
 		let end = _start.copy().add(_delta);
-		this.drawVectorTo(_start, end, _color);
+		this.drawVectorTo(_start.multiply(this.scalar), end.multiply(this.scalar), _color);
 	}
 	drawVectorTo(_start, _end, _color = '#f00') {
 		ctx.strokeStyle = _color;

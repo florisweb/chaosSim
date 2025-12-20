@@ -17,7 +17,7 @@ class Object {
 	netForce = new Vector2D(0, 0);
 	netTorque = 0;
 
-	centreOfRotation = new Vector2D(0, 0);
+	centreOfRotation = new Vector2D(0, 0); // Relative when not rotated
 
 
 	get mass() {
@@ -31,7 +31,7 @@ class Object {
 		this.geometry = _geometry;
 		this.material = _material;
 
-		// this.centreOfRotation = this.geometry.relativeCentreOfGravity;
+		// this.n#onRotCentreOfRotation = this.geometry.relativeCentreOfMass;
 		this.centreOfRotation = new Vector2D(0, 0);
 	}
 
@@ -46,13 +46,29 @@ class Object {
 		this.netTorque = 0;
 		for (let dynamic of this.dynamics)
 		{
-			let [subTransForce, subTorque] = dynamic.calculate(_dt, _simulation);
-			this.netForce.add(subTransForce);
-			this.netTorque += subTorque;
+			dynamic.applyForce(_dt, _simulation);
 		}
 	}
 
-	applyForces(_dt) {
+	applyForce(_relPosition, _force) { // _relPos: already rotated
+		let delta = this.centreOfRotation.difference(_relPosition);
+		let perpendicular = _force.projectOnTo(delta.perpendicular)
+		let parallel = _force.projectOnTo(delta);
+
+		// console.log(_relPosition, _force)
+		this.netTorque += _force.dotProduct(delta.perpendicular);
+		// this.netForce.add(parallel);
+		
+		App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(0.01), '#aaa');
+		App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(0.01), '#0f0');
+		App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(0.01), '#00f');
+			// this.netTorque += subTorque;
+
+	}
+
+
+
+	applyNetForceConsequences(_dt) {
 		let transAcc = this.netForce.copy().scale(1 / this.mass);
 		this.velocity.add(transAcc.copy().scale(_dt));
 		this.position.add(this.velocity.copy().scale(_dt));
@@ -69,11 +85,12 @@ class Object {
 
 
 export class ArmObject extends Object {
-	constructor({position, size}) {
+	constructor({position, size, angle = 0}) {
 		super(new RectangleGeometry(size), new ArmMaterial);
 		this.position = position;
+		this.angle = angle;
 		this.addDynamic(GravityDynamic);
-		this.addDynamic(BottomWorldBoundDynamic);
+		// this.addDynamic(BottomWorldBoundDynamic);
 	}
 }
 
