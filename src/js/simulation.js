@@ -27,7 +27,7 @@ export default class Simulation {
 
 		for (let obj of this.objects)
 		{
-			obj.calcForces(dt);
+			obj.calcForces(dt, this);
 		}
 		for (let obj of this.objects)
 		{

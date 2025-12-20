@@ -14,5 +14,5 @@ class Material {
 
 
 export class ArmMaterial extends Material {
-	
+	density = 5;
 } 

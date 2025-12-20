@@ -2,7 +2,7 @@ import { Vector2D } from './vector.js';
 
 import { RectangleGeometry } from './geometry.js' ;
 import { ArmMaterial } from './material.js';
-import { GravityDynamic } from './dynamics.js';
+import { GravityDynamic, BottomWorldBoundDynamic } from './dynamics.js';
 
 class Object {
 	geometry;
@@ -28,13 +28,14 @@ class Object {
 	addDynamic(_dynamicClass) {
 		let dynamic = new _dynamicClass(this);
 		this.dynamics.push(dynamic);
+		this.dynamics.sort((a, b) => a.order > b.order);
 	}
 
-	calcForces(_dt) {
+	calcForces(_dt, _simulation) {
 		this.netForce = new Vector2D(0, 0);
 		for (let dynamic of this.dynamics)
 		{
-			let subForce = dynamic.calculate(_dt);
+			let subForce = dynamic.calculate(_dt, _simulation);
 			this.netForce.add(subForce);
 		}
 	}
@@ -55,6 +56,7 @@ export class ArmObject extends Object {
 		super(new RectangleGeometry(size), new ArmMaterial);
 		this.position = position;
 		this.addDynamic(GravityDynamic);
+		this.addDynamic(BottomWorldBoundDynamic);
 	}
 }
 
