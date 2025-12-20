@@ -55,7 +55,7 @@ export default class Renderer {
 	drawObject(_object) {
 		ctx.fillStyle = _object.material.getFillStyle();
 
-		_object.geometry.drawShape(ctx, _object.position, this.scalar);
+		_object.geometry.drawShape(ctx, _object.position, _object.angle, _object.centreOfRotation, this.scalar);
 		ctx.fill();
 	}
 

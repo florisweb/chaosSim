@@ -81,7 +81,21 @@ export class Vector2D extends BaseVector {
 		this.y *= _scalar;
 		return this;
 	}
+
+	multiply(_vec) {
+		this.x *= _vec.x;
+		this.y *= _vec.y
+		return this;
+	}
+	
+
+	rotate(_angle) {
+		this.angle = this.angle + _angle;
+		return this;
+	}
 }
+
+
 export default Vector2D
 
 export class Vector3D extends Vector2D {

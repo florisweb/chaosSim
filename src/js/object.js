@@ -11,18 +11,28 @@ class Object {
 
 	position = new Vector2D(0, 0);
 	velocity = new Vector2D(0, 0);
+	angularVelocity = 0;
 	angle = 0;
 
 	netForce = new Vector2D(0, 0);
+	netTorque = 0;
+
+	centreOfRotation = new Vector2D(0, 0);
 
 
 	get mass() {
 		return this.geometry.area * this.material.density;
 	}
+	get inertia() {
+		return this.geometry.calcInertia(this.centreOfRotation);
+	}
 
 	constructor(_geometry, _material) {
 		this.geometry = _geometry;
 		this.material = _material;
+
+		// this.centreOfRotation = this.geometry.relativeCentreOfGravity;
+		this.centreOfRotation = new Vector2D(0, 0);
 	}
 
 	addDynamic(_dynamicClass) {
@@ -33,17 +43,24 @@ class Object {
 
 	calcForces(_dt, _simulation) {
 		this.netForce = new Vector2D(0, 0);
+		this.netTorque = 0;
 		for (let dynamic of this.dynamics)
 		{
-			let subForce = dynamic.calculate(_dt, _simulation);
-			this.netForce.add(subForce);
+			let [subTransForce, subTorque] = dynamic.calculate(_dt, _simulation);
+			this.netForce.add(subTransForce);
+			this.netTorque += subTorque;
 		}
 	}
 
 	applyForces(_dt) {
 		let transAcc = this.netForce.copy().scale(1 / this.mass);
-		this.velocity.add(transAcc.copy().scale(_dt))
-		this.position.add(this.velocity.copy().scale(_dt))
+		this.velocity.add(transAcc.copy().scale(_dt));
+		this.position.add(this.velocity.copy().scale(_dt));
+
+		let angularAcc = this.netTorque / this.inertia;
+		this.angularVelocity += angularAcc * _dt
+		this.angle += this.angularVelocity * _dt
+
 	}
 }
 

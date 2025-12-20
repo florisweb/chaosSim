@@ -9,7 +9,7 @@ export default class Simulation {
 	world = [];
 	objects = [];
 	config = {
-		maxDt: 0.1
+		maxDt: 0.01
 	}
 	
 
