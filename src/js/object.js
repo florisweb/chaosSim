@@ -41,6 +41,12 @@ class Object {
 		this.dynamics.sort((a, b) => a.order > b.order);
 	}
 
+	#positionPinned = false;
+	addRotationPin(_relPos) {
+		this.centreOfRotation = _relPos;
+		this.#positionPinned = true;
+	}
+
 	calcForces(_dt, _simulation) {
 		this.netForce = new Vector2D(0, 0);
 		this.netTorque = 0;
@@ -55,9 +61,11 @@ class Object {
 		let perpendicular = _force.projectOnTo(delta.perpendicular)
 		// let parallel = _force.projectOnTo(delta);
 
+		console.log(_force, delta.perpendicular, _force.dotProduct(delta.perpendicular))
+
 		this.netTorque += _force.dotProduct(delta.perpendicular);
 		// this.netForce.add(parallel);
-		this.netForce.add(_force); // Correct?
+		if (!this.#positionPinned) this.netForce.add(_force); // Correct?
 
 		App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(0.01), '#aaa');
 		App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(0.01), '#0f0');
@@ -71,6 +79,8 @@ class Object {
 		let transAcc = this.netForce.copy().scale(1 / this.mass);
 		this.velocity.add(transAcc.copy().scale(_dt));
 		this.position.add(this.velocity.copy().scale(_dt));
+
+		console.log('nt', this.netTorque);
 
 		let angularAcc = this.netTorque / this.inertia;
 		this.angularVelocity += angularAcc * _dt
@@ -93,8 +103,9 @@ export class ArmObject extends Object {
 		this.position = position;
 		this.angle = angle;
 		
-		this.centreOfRotation = size.copy().scale(0)
-		this.addDynamic(GravityDynamic);
+
+		// this.addDynamic(GravityDynamic);
+		this.addRotationPin(size.copy().scale(0.5));
 		// this.addDynamic(BottomWorldBoundDynamic);
 	}
 }

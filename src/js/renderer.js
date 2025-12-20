@@ -31,8 +31,9 @@ export default class Renderer {
 
 
 		window.onresize = () => {
-			worldCanvas.width = worldCanvas.offsetWidth;
-			worldCanvas.height = worldCanvas.offsetHeight;
+			const pxScalar = 2;
+			worldCanvas.width = worldCanvas.offsetWidth * pxScalar;
+			worldCanvas.height = worldCanvas.offsetHeight * pxScalar;
 			this.size = new Vector2D(worldCanvas.width, worldCanvas.height);
 		}
 		window.onresize();

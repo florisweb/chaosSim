@@ -8,7 +8,7 @@ export default class Simulation {
 	world = [];
 	objects = [];
 	config = {
-		maxDt: 0.0005
+		maxDt: 0.01
 	}
 	
 
@@ -25,11 +25,12 @@ export default class Simulation {
 
 		for (let obj of this.objects)
 		{
-			obj.calcForces(dt, this);
+			obj.applyNetForceConsequences(dt);
 		}
+		
 		for (let obj of this.objects)
 		{
-			obj.applyNetForceConsequences(dt);
+			obj.calcForces(dt, this);
 		}
 
 		this.#lastUpdate = new Date();
