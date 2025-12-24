@@ -1,6 +1,7 @@
 import { Vector2D, Vector3D } from './vector.js';
 import Simulation from './simulation.js';
 import Renderer from './renderer.js';
+import Recorder from './recorder.js';
 import { SpringConnector } from './connectors.js';
 
 import { ArmObject, BucketObject, AnchorObject, WheelObject, TrueBucketObject } from './object.js';
@@ -16,6 +17,7 @@ const App = new class {
 
 		this.renderer = new Renderer({canvas: document.querySelector('#worldCanvas')});
 		this.simulation = new Simulation({size: size});
+		this.recorder = new Recorder({recordInterval: 0.1});
 
 		// for (let i = 0; i < 4; i++)
 		// {
@@ -121,9 +123,12 @@ const App = new class {
 	}
 
 	update() {
+		if (this.simulation.time > 600) return;
+
 		this.renderer.draw(this.simulation);
-		// for (let i = 0; i < 20; i++) 
-		this.simulation.update();
+		for (let i = 0; i < 20; i++) 
+			this.simulation.update();
+		this.recorder.record(this.simulation);
 		setTimeout(() => this.update(), 1);
 	}
 }

@@ -19,17 +19,19 @@ export default class Simulation {
 	
 	#lastUpdate = new Date();
 	updates = 0;
+	time = 0;
 	update() {
 		this.updates++;
 		let dt = Math.min((new Date() - this.#lastUpdate) / 1000, this.config.maxDt);
 		dt *= 5;
+		dt = 0.05;
 
-		
+		this.time += dt;
 		for (let obj of this.objects)
 		{
 			obj.customUpdate(dt);
 		}
-		
+
 		for (let obj of this.objects)
 		{
 			obj.applyNetForceConsequences(dt);
