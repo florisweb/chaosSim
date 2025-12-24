@@ -26,12 +26,13 @@ class Object {
 	get inertia() {
 		return this.geometry.calcInertia(this.centreOfRotation);
 	}
+	get relativeCentreOfMass() {
+		return this.geometry.relativeCentreOfMass;
+	}
 
 	constructor(_geometry, _material) {
 		this.geometry = _geometry;
 		this.material = _material;
-
-		this.centreOfRotation = this.geometry.relativeCentreOfMass;
 	}
 
 	connect(_other, _relConnPosSelf, _relConnPosOther, _connectorClass) {
@@ -63,11 +64,8 @@ class Object {
 	}
 
 	applyForce(_pos_objectCoords, _force_worldCoords) {
-
 		let delta = _pos_objectCoords.difference(this.centreOfRotation); // this.centreOfRotation.difference(_pos_objectCoords); // Relative to centre of rotation (object space)
 		let delta_worldCoords = delta.copy().rotate(-this.angle);
-
-
 
 
 		this.netTorque += _force_worldCoords.dotProduct(delta_worldCoords.perpendicular);
@@ -120,6 +118,132 @@ class Object {
 
 
 
+export class ObjectGroup extends Object {
+	/*
+		The position of an object in an objectgroup is its relative position to the position of that objectgroup.
+	*/
+
+
+	isObjectGroup = true;
+
+	get mass() {
+		return this.objects.map(r => r.mass).reduce((a, b) => a + b, 0) || 0;
+	}
+	get inertia() {
+		let inertia = 0;
+		for (let obj of this.objects)
+		{	
+			let rotCentreOffset = this.relativeCentreOfMass.difference(obj.relPosInGroup);
+			let rotCentreDist = rotCentreOffset.length;
+			inertia += obj.inertia + rotCentreDist**2 * obj.geometry.area;
+		}
+
+
+		return inertia;
+	}
+
+	get relativeCentreOfMass() {
+		let totalMass = this.mass;
+		let relCentreOfMass = new Vector2D(0, 0);
+		for (let obj of this.objects)
+		{
+			relCentreOfMass.add(obj.relativeCentreOfMass.copy().scale(obj.mass / totalMass));
+		}
+
+		return relCentreOfMass;
+	}
+
+
+	objects = [];
+	constructor(_objects) {
+		super();
+		for (let obj of _objects) 
+		{
+			if (!obj.relPosInGroup) obj.relPosInGroup = new Vector2D(0, 0);
+		}
+
+		this.objects = _objects;
+		for (let obj of this.objects)
+		{
+			obj.applyForce = (_pos_objectCoords, _force_worldCoords) => {
+				let pos_objectCoordsInGroup = _pos_objectCoords; // TOOD
+				this.applyForce(pos_objectCoordsInGroup, _force_worldCoords);
+			}
+
+			let prevObjectCoordToWorldCoord = obj.objectCoordToWorldCoord;
+			obj.objectCoordToWorldCoord = (_vec2d) => {
+				let coord = prevObjectCoordToWorldCoord.call(obj, _vec2d);
+				return this.objectCoordToWorldCoord(coord);
+			}
+		}
+
+
+
+		this.centreOfRotation = this.relativeCentreOfMass;
+	}
+
+
+	calcForces(_dt, _simulation) {
+		this.netForce = new Vector2D(0, 0);
+		this.netTorque = 0;
+
+		for (let obj of this.objects)
+		{
+			obj.calcForces(_dt, _simulation);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export class TrueBucketObject extends ObjectGroup {
+	constructor({position, size, wallThickness}) {
+		let bottom = new BucketWallObject({position: new Vector2D(0, size.y), size: new Vector2D(size.x, wallThickness)});
+		let left = new BucketWallObject({position: new Vector2D(0, 0), size: new Vector2D(wallThickness, size.y)});
+		let right = new BucketWallObject({position: new Vector2D(size.x, 0), size: new Vector2D(wallThickness, size.y)});
+		super([bottom, left, right]);
+
+		this.position = position;
+		this.centreOfRotation = this.relativeCentreOfMass;
+	}
+}
+
+
+
+export class BucketWallObject extends Object {
+	constructor({position, size, angle = 0}) {
+		super(new RectangleGeometry(size), new BucketMaterial);
+		this.position = position;
+		this.angle = angle;
+		
+		// this.centreOfRotation = new Vector2D(size.x / 2, 0);
+		// this.addRotationPin(new Vector2D(0, 0));
+
+		this.addDynamic(GravityDynamic);
+		// this.addDynamic(TransFrictionDynamic);
+		// this.addDynamic(RotFrictionDynamic);
+	}
+}
+
+
+
+
+
+
 
 export class WheelObject extends Object {
 	constructor({position, radius}) {
@@ -129,25 +253,10 @@ export class WheelObject extends Object {
 		this.addRotationPin(new Vector2D(0, 0));
 
 		this.addDynamic(GravityDynamic);
-		this.addDynamic(RotFrictionDynamic);
+		// this.addDynamic(RotFrictionDynamic);
 		// this.addDynamic(BottomWorldBoundDynamic);
 	}
 }
-
-export class ArmObject extends Object {
-	constructor({position, size, angle = 0}) {
-		super(new RectangleGeometry(size), new ArmMaterial);
-		this.position = position;
-		this.angle = angle;
-		
-
-		// this.addDynamic(GravityDynamic);
-		this.addRotationPin(size.copy().scale(.33));
-		this.addDynamic(RotFrictionDynamic);
-		// this.addDynamic(BottomWorldBoundDynamic);
-	}
-}
-
 
 export class BucketObject extends Object {
 	constructor({position, size, angle = 0}) {
@@ -163,6 +272,23 @@ export class BucketObject extends Object {
 		this.addDynamic(RotFrictionDynamic);
 	}
 }
+
+export class ArmObject extends Object {
+	constructor({position, size, angle = 0}) {
+		super(new RectangleGeometry(size), new ArmMaterial);
+		this.position = position;
+		this.angle = angle;
+		
+
+		// this.addDynamic(GravityDynamic);
+		this.addRotationPin(size.copy().scale(.33));
+		// this.addDynamic(RotFrictionDynamic);
+		// this.addDynamic(BottomWorldBoundDynamic);
+	}
+}
+
+
+
 
 export class AnchorObject extends Object {
 	constructor({position, angle = 0}) {

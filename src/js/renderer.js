@@ -56,16 +56,28 @@ export default class Renderer {
 
 
 	drawObject(_object) {
+		if (_object.isObjectGroup) return this.drawObjectGroup(_object);
+
 		this.curObject = _object;
 		ctx.fillStyle = _object.material.getFillStyle();
 
 		_object.geometry.drawShape(ctx, this);
 		ctx.fill();
 		
-		this.drawVector(_object.objectCoordToWorldCoord(_object.centreOfRotation), new Vector2D(0, -1), '#0af');
-		this.drawVector(_object.objectCoordToWorldCoord(_object.geometry.relativeCentreOfMass), new Vector2D(0, -1), '#0fa');
-		this.drawVector(_object.position, new Vector2D(0, -1), '#fa0');
+		// this.drawVector(_object.objectCoordToWorldCoord(_object.centreOfRotation), new Vector2D(0, -1), '#0af');
+		// this.drawVector(_object.objectCoordToWorldCoord(_object.geometry.relativeCentreOfMass), new Vector2D(0, -1), '#0fa');
+		// this.drawVector(_object.position, new Vector2D(0, -1), '#fa0');
 	}
+
+	drawObjectGroup(_objectGroup) {
+		for (let obj of _objectGroup.objects)
+		{
+			this.drawObject(obj);
+		}
+	}
+
+
+
 
 
 	lineTo(_pos) {

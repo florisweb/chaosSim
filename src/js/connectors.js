@@ -10,6 +10,7 @@ class Connector {
 		this._relConnPosA = _relConnPosA;
 		this._relConnPosB = _relConnPosB;
 	}
+
 }
 
 export class SpringConnector extends Connector {
@@ -19,17 +20,26 @@ export class SpringConnector extends Connector {
 		super(...arguments)
 		this.dynamicA = new SpringDynamic(_objA, _objB, _relConnPosA, _relConnPosB);
 		this.dynamicB = new SpringDynamic(_objB, _objA, _relConnPosB, _relConnPosA);
+		this.dynamicA.otherDynamic = this.dynamicB;
+		this.dynamicB.otherDynamic = this.dynamicA;
 	}
 }
 
 
 class SpringDynamic extends Dynamic {
+	otherDynamic;
 	k = 50;
+
 	constructor(_object, _other, _relConnPosSelf, _relConnPosOther) {
 		super(_object);
 		this._other = _other
 		this.relConnPosSelf = _relConnPosSelf;
 		this.relConnPosOther = _relConnPosOther;
+	}
+
+	delete(_initialCall = true) {
+		if (_initialCall) this.otherDynamic.delete(false);
+		this._object.dynamics = this._object.dynamics.filter(d => d != this);
 	}
 
 	applyForce(_dt, _simulation) {

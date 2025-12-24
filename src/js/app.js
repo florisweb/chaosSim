@@ -3,7 +3,7 @@ import Simulation from './simulation.js';
 import Renderer from './renderer.js';
 import { SpringConnector } from './connectors.js';
 
-import { ArmObject, BucketObject, AnchorObject, WheelObject } from './object.js';
+import { ArmObject, BucketObject, AnchorObject, WheelObject, TrueBucketObject } from './object.js';
 
 window.Vector2D = Vector2D;
 const App = new class {
@@ -48,28 +48,50 @@ const App = new class {
 		// arm.connect(bucket1, new Vector2D(0, 0), new Vector2D(bucketSize / 2, 0), SpringConnector);
 		// arm.connect(bucket2, new Vector2D(armSize.x, 0), new Vector2D(bucketSize / 2, 0), SpringConnector);
 
-		
-		const wheelRadius = 10;
-		const wheelCentrePos = new Vector2D(20, 25);
-		let wheel = new WheelObject({position: wheelCentrePos, radius: wheelRadius})
-		this.simulation.objects.push(wheel);
+			
+
+
+		// ------- WHEEL --------
+		// const wheelRadius = 10;
+		// const wheelCentrePos = new Vector2D(20, 25);
+		// let wheel = new WheelObject({position: wheelCentrePos, radius: wheelRadius})
+		// this.simulation.objects.push(wheel);
+
+
+		// const bucketSize = new Vector2D(2, 2);
+		// const armSize = new Vector2D(20, 0.5);
+
+
+
+		// const bucketCount = 10;
+
+		// for (let b = 0; b < bucketCount; b++)
+		// {
+		// 	let angle = b / bucketCount * 2 * Math.PI;
+		// 	let offset = new Vector2D(wheelRadius, 0).rotate(angle);
+		// 	let bucket = new BucketObject({position: wheelCentrePos.copy().add(offset).add(bucketSize.copy().scale(-0.5)), size: bucketSize});
+		// 	wheel.connect(bucket, offset, new Vector2D(bucketSize.x / 2, 0), SpringConnector);
+		// 	this.simulation.objects.push(bucket);
+		// }
+
+
+
+
+
+
+
 
 
 		const bucketSize = new Vector2D(2, 2);
-		const armSize = new Vector2D(20, 0.5);
+		let bucket = new TrueBucketObject({position: new Vector2D(10, 10), size: bucketSize, wallThickness: 0.1});
+
+		this.simulation.objects.push(bucket);
 
 
 
-		const bucketCount = 10;
 
-		for (let b = 0; b < bucketCount; b++)
-		{
-			let angle = b / bucketCount * 2 * Math.PI;
-			let offset = new Vector2D(wheelRadius, 0).rotate(angle);
-			let bucket = new BucketObject({position: wheelCentrePos.copy().add(offset).add(bucketSize.copy().scale(-0.5)), size: bucketSize});
-			wheel.connect(bucket, offset, new Vector2D(bucketSize.x / 2, 0), SpringConnector);
-			this.simulation.objects.push(bucket);
-		}
+
+
 
 		this.setup().then(() => document.body.classList.remove('loading'));
 	}
