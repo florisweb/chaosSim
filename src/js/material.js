@@ -21,3 +21,7 @@ export class BucketMaterial extends Material {
 	color = '#0f0';
 	density = 1;
 } 
+export class WaterMaterial extends Material {
+	color = '#00f';
+	density = 2;
+} 

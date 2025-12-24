@@ -1,7 +1,7 @@
 import { Vector2D } from './vector.js';
 
 import { RectangleGeometry, CircleGeometry } from './geometry.js' ;
-import { ArmMaterial, BucketMaterial } from './material.js';
+import { ArmMaterial, BucketMaterial, WaterMaterial } from './material.js';
 import { GravityDynamic, BottomWorldBoundDynamic, TransFrictionDynamic, RotFrictionDynamic } from './dynamics.js';
 
 class Object {
@@ -212,10 +212,14 @@ export class ObjectGroup extends Object {
 
 export class TrueBucketObject extends ObjectGroup {
 	constructor({position, size, wallThickness}) {
-		let bottom = new BucketWallObject({position: new Vector2D(0, size.y), size: new Vector2D(size.x, wallThickness)});
-		let left = new BucketWallObject({position: new Vector2D(0, 0), size: new Vector2D(wallThickness, size.y)});
-		let right = new BucketWallObject({position: new Vector2D(size.x, 0), size: new Vector2D(wallThickness, size.y)});
-		super([bottom, left, right]);
+		let left = new BucketWallObject({position: new Vector2D(0, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
+
+		let bottom = new BucketWallObject({position: new Vector2D(0, size.y - wallThickness), size: new Vector2D(size.x, wallThickness)});
+
+		let right = new BucketWallObject({position: new Vector2D(size.x - wallThickness, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
+
+		let water = new BucketWaterObject({position: new Vector2D(wallThickness, 0), size: new Vector2D(size.x - wallThickness * 2, size.y - wallThickness)});
+		super([bottom, left, right, water]);
 
 		this.position = position;
 		this.centreOfRotation = this.relativeCentreOfMass;
@@ -230,14 +234,36 @@ export class BucketWallObject extends Object {
 		this.position = position;
 		this.angle = angle;
 		
-		// this.centreOfRotation = new Vector2D(size.x / 2, 0);
-		// this.addRotationPin(new Vector2D(0, 0));
-
-		this.addDynamic(GravityDynamic);
-		// this.addDynamic(TransFrictionDynamic);
-		// this.addDynamic(RotFrictionDynamic);
+		// this.addDynamic(GravityDynamic);
 	}
 }
+
+
+
+
+export class BucketWaterObject extends Object {
+	#fullPerc = 1;
+	#size;
+	#initialPosition;
+	get fullPerc() {
+		return this.#fullPerc;
+	}
+	set fullPerc(_perc) {
+		this.#fullPerc = _perc;
+		this.geometry.diagonal = new Vector2D(this.#size.x, this.#size.y * _perc);
+		this.position = this.#initialPosition.copy().add(new Vector2D(0, this.#size.y * (1 - _perc)))
+	}
+
+	constructor({position, size, angle = 0}) {
+		super(new RectangleGeometry(size), new WaterMaterial);
+		this.#size = size;
+		this.#initialPosition = position;
+		this.position = position;
+		this.angle = angle;
+		// this.addDynamic(GravityDynamic);
+	}
+}
+
 
 
 
