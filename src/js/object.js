@@ -82,6 +82,10 @@ class Object {
 			perpendicular.copy().scale(0.01), '#fff');
 	}
 
+	customUpdate() {
+
+	}
+
 
 
 	applyNetForceConsequences(_dt) {
@@ -178,7 +182,6 @@ export class ObjectGroup extends Object {
 		}
 
 
-
 		this.centreOfRotation = this.relativeCentreOfMass;
 	}
 
@@ -190,6 +193,11 @@ export class ObjectGroup extends Object {
 		for (let obj of this.objects)
 		{
 			obj.calcForces(_dt, _simulation);
+		}
+
+		for (let dynamic of this.dynamics)
+		{
+			dynamic.applyForce(_dt, _simulation);
 		}
 	}
 }
@@ -210,19 +218,38 @@ export class ObjectGroup extends Object {
 
 
 
+
+
+
+
 export class TrueBucketObject extends ObjectGroup {
+	#waterObject;
 	constructor({position, size, wallThickness}) {
 		let left = new BucketWallObject({position: new Vector2D(0, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
-
 		let bottom = new BucketWallObject({position: new Vector2D(0, size.y - wallThickness), size: new Vector2D(size.x, wallThickness)});
-
 		let right = new BucketWallObject({position: new Vector2D(size.x - wallThickness, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
-
 		let water = new BucketWaterObject({position: new Vector2D(wallThickness, 0), size: new Vector2D(size.x - wallThickness * 2, size.y - wallThickness)});
+
 		super([bottom, left, right, water]);
+		this.#waterObject = water;
 
 		this.position = position;
 		this.centreOfRotation = this.relativeCentreOfMass;
+		this.addDynamic(RotFrictionDynamic);
+		this.addDynamic(TransFrictionDynamic);
+	}
+
+	get fullPerc() {
+		return this.#waterObject.fullPerc;
+	}
+	set fullPerc(_perc) {
+		this.#waterObject.fullPerc = _perc;
+	}
+
+	customUpdate(_dt) {
+		this.fullPerc -= 0.01 * _dt;
+		if (this.position.y > 17) return;
+		this.fullPerc += 0.1 * _dt;
 	}
 }
 
@@ -234,7 +261,7 @@ export class BucketWallObject extends Object {
 		this.position = position;
 		this.angle = angle;
 		
-		// this.addDynamic(GravityDynamic);
+		this.addDynamic(GravityDynamic);
 	}
 }
 
@@ -249,9 +276,9 @@ export class BucketWaterObject extends Object {
 		return this.#fullPerc;
 	}
 	set fullPerc(_perc) {
-		this.#fullPerc = _perc;
-		this.geometry.diagonal = new Vector2D(this.#size.x, this.#size.y * _perc);
-		this.position = this.#initialPosition.copy().add(new Vector2D(0, this.#size.y * (1 - _perc)))
+		this.#fullPerc = Math.max(Math.min(_perc, 1), 0);
+		this.geometry.diagonal = new Vector2D(this.#size.x, this.#size.y * this.#fullPerc);
+		this.position = this.#initialPosition.copy().add(new Vector2D(0, this.#size.y * (1 - this.#fullPerc)))
 	}
 
 	constructor({position, size, angle = 0}) {
@@ -260,9 +287,12 @@ export class BucketWaterObject extends Object {
 		this.#initialPosition = position;
 		this.position = position;
 		this.angle = angle;
-		// this.addDynamic(GravityDynamic);
+		this.addDynamic(GravityDynamic);
 	}
 }
+
+
+
 
 
 

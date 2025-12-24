@@ -79,13 +79,27 @@ const App = new class {
 
 
 
-
+		const wheelRadius = 10;
+		const wheelCentrePos = new Vector2D(20, 25);
+		let wheel = new WheelObject({position: wheelCentrePos, radius: wheelRadius})
+		this.simulation.objects.push(wheel);
 
 
 		const bucketSize = new Vector2D(2, 2);
-		let bucket = new TrueBucketObject({position: new Vector2D(10, 10), size: bucketSize, wallThickness: 0.1});
+		const armSize = new Vector2D(20, 0.5);
 
-		this.simulation.objects.push(bucket);
+
+
+		const bucketCount = 10;
+
+		for (let b = 0; b < bucketCount; b++)
+		{
+			let angle = b / bucketCount * 2 * Math.PI;
+			let offset = new Vector2D(wheelRadius, 0).rotate(angle);
+			let bucket = new TrueBucketObject({position: wheelCentrePos.copy().add(offset).add(bucketSize.copy().scale(-0.5)), size: bucketSize, wallThickness: 0.1});
+			wheel.connect(bucket, offset, new Vector2D(bucketSize.x / 2, 0), SpringConnector);
+			this.simulation.objects.push(bucket);
+		}
 
 
 
