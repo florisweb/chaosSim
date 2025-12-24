@@ -19,5 +19,5 @@ export class ArmMaterial extends Material {
 
 export class BucketMaterial extends Material {
 	color = '#0f0';
-	density = 10;
+	density = 1;
 } 

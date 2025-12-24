@@ -18,8 +18,7 @@ class Object {
 	netForce = new Vector2D(0, 0);
 	netTorque = 0;
 
-	centreOfRotation = new Vector2D(0, 0); // Relative when not rotated
-
+	centreOfRotation = new Vector2D(0, 0); // Position relative to position, in WORLD coords
 
 	get mass() {
 		return this.geometry.area * this.material.density;
@@ -38,7 +37,7 @@ class Object {
 	connect(_other, _relConnPosSelf, _relConnPosOther, _connectorClass) {
 		let conn = new _connectorClass(this, _other, _relConnPosSelf, _relConnPosOther);
 		this.dynamics.push(conn.dynamicA);
-		_other.dynamics.push(conn.dynamicB);
+		// _other.dynamics.push(conn.dynamicB);
 	}
 
 
@@ -66,15 +65,36 @@ class Object {
 	applyForce(_relPosition, _force) { // _relPos: already rotated
 		let delta = this.centreOfRotation.difference(_relPosition);
 		let perpendicular = _force.projectOnTo(delta.perpendicular)
-		// let parallel = _force.projectOnTo(delta);
+		let parallel = _force.projectOnTo(delta);
 
 		this.netTorque += _force.dotProduct(delta.perpendicular);
 		// this.netForce.add(parallel);
 		if (!this.#positionPinned) this.netForce.add(_force); // Correct?
 
-		// App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(0.01), '#aaa');
-		// App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(0.01), '#0f0');
-		// App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(0.01), '#00f');
+		// console.log(_relPosition, _force)
+		// App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(1), '#f00');
+
+		// App.renderer.drawVector(
+		// 	this.centreOfRotation.copy().scale(-1).rotate(this.angle).add(this.centreOfRotation).add(this.position),
+		// 	_force.copy().scale(5), '#aaa');
+			
+
+		let perp = perpendicular.copy();
+		perp.length = this.netTorque
+		// App.renderer.drawVector(
+		// 	delta.copy().scale(-1).rotate(this.angle).add(delta).add(this.position),
+		// 	new Vector2D(0, 1), '#f00');
+		
+		App.renderer.drawVector(
+			_relPosition.copy().add(this.position),
+			_force.copy().scale(1), '#f00');
+
+		App.renderer.drawVector(
+			_relPosition.copy().add(this.position),
+			perpendicular.copy().scale(1), '#00f');
+
+		// App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(1), '#0f0');
+		// App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(1), '#00f');
 	}
 
 
@@ -93,6 +113,22 @@ class Object {
 		// App.renderer.drawVector(this.position.copy().add(this.centreOfRotation.copy()), new Vector2D(0, -5), '#fa0');
 		// App.renderer.drawVector(this.position.copy(), new Vector2D(0, -5), '#af0');
 
+	}
+
+
+
+
+	// --- Transformations ---
+	worldCoordToObjectCoord(_vec2d) {
+		let deltaFromCentre_world = _vec2d.subtract(this.position).subtract(this.centreOfRotation);
+		let deltaFromCentre_object = deltaFromCentre_world.copy().rotate(this.angle);
+		return deltaFromCentre_object.add(this.centreOfRotation);
+	}
+	
+	objectCoordToWorldCoord(_vec2d) {
+		let deltaFromCentre_object = _vec2d.copy().subtract(this.centreOfRotation);
+		let deltaFromCentre_world = deltaFromCentre_object.copy().rotate(-this.angle);
+		return deltaFromCentre_world.copy().add(this.centreOfRotation).add(this.position);
 	}
 }
 
@@ -119,11 +155,19 @@ export class BucketObject extends Object {
 		super(new RectangleGeometry(size), new BucketMaterial);
 		this.position = position;
 		this.angle = angle;
-		this.addDynamic(GravityDynamic);
-		this.centreOfRotation = new Vector2D(size.x / 2, 0);
+		// this.addDynamic(GravityDynamic);
+		// this.centreOfRotation = new Vector2D(size.x / 2, 0);
+		// this.addRotationPin(new Vector2D(0, 0));
 	}
 }
 
+export class AnchorObject extends Object {
+	constructor({position, angle = 0}) {
+		super(new RectangleGeometry(new Vector2D(0.5, 0.5)), new ArmMaterial);
+		this.position = position;
+		this.addRotationPin(new Vector2D(0.5/2, 0.5/2));
+	}
+}
 
 
 

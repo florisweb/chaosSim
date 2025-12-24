@@ -11,6 +11,8 @@ export default class Renderer {
 	size = new Vector2D(100, 100);
 	scalar = new Vector2D(1, 1);
 
+	curObject;
+
 	constructor({canvas}) {
 		this.canvas = canvas;
 		ctx = this.canvas.getContext('2d');
@@ -54,15 +56,56 @@ export default class Renderer {
 
 
 	drawObject(_object) {
+		this.curObject = _object;
 		ctx.fillStyle = _object.material.getFillStyle();
 
-		_object.geometry.drawShape(ctx, _object.position, _object.angle, _object.centreOfRotation, this.scalar);
+		_object.geometry.drawShape(ctx, this);
 		ctx.fill();
+		
+		this.drawVector(_object.objectCoordToWorldCoord(_object.centreOfRotation), new Vector2D(0, -1), '#0f0');
+		this.drawVector(_object.position, new Vector2D(0, -1), '#fa0');
+
+
+		// let centreRodDeltaFromObjOrigin_world = _object.centreOfRotation.copy().rotate(-_object.angle);
+		// let deltaFromCentre_object = new Vector2D(0, 0).copy().subtract(centreRodDeltaFromObjOrigin_world)
+
+
+		// let deltaFromCentre_world = deltaFromCentre_object.copy().rotate(-_object.angle);
+		// // return centreRod_world.copy().subtract(deltaFromCentre_world);
+		// let centreRod_world = _object.position.copy().add(_object.centreOfRotation); // correct
+		// this.drawVector(centreRod_world, deltaFromCentre_world, '#00f');
+		// this.drawVector(new Vector2D(0, 0), centreRodDeltaFromObjOrigin_world, '#00f');
+
+		let _vec2d = new Vector2D(10, 0);
+		// let centreRodDeltaFromObjOrigin_world = _object.centreOfRotation.copy().rotate(-_object.angle);
+		// let deltaFromCentre_object = _vec2d.copy().subtract(_object.centreOfRotation);
+		// let deltaFromCentre_world = deltaFromCentre_object.copy().rotate(-_object.angle);
+		// let deltaFromObjOrigin_world = deltaFromCentre_world.copy().subtract(_object.centreOfRotation);
+
+		this.drawVector(this.curObject.objectCoordToWorldCoord(_vec2d), new Vector2D(0, -1), '#00f');
+
+
+		// let deltaFromCentre_world = deltaFromCentre_object.copy().rotate(-_object.angle);
+		// let centreRod_world = _object.position.copy().add(_object.centreOfRotation);
+
+		// let worldCoord = centreRod_world.copy().subtract(deltaFromCentre_world);
 	}
+
+
+	lineTo(_pos) {
+		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
+		ctx.lineTo(pxCoords.x, pxCoords.y)
+	}
+	moveTo(_pos) {
+		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
+		ctx.moveTo(pxCoords.x, pxCoords.y)
+	}
+
+
 
 	drawVector(_start, _delta, _color = '#f00') {
 		let end = _start.copy().add(_delta);
-		this.drawVectorTo(_start.multiply(this.scalar), end.multiply(this.scalar), _color);
+		this.drawVectorTo(_start.copy().multiply(this.scalar), end.multiply(this.scalar), _color);
 	}
 	drawVectorTo(_start, _end, _color = '#f00') {
 		ctx.strokeStyle = _color;
@@ -73,6 +116,7 @@ export default class Renderer {
 	    ctx.stroke();
 	}
 }
+
 
 
 

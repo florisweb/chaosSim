@@ -48,30 +48,41 @@ export class RectangleGeometry {
 		this.diagonal = _diagonal;
 	}
 
-	drawShape(ctx, _position, _angle, _centreOfRotation, scalar) {
-		let topLeft = _centreOfRotation.copy().scale(-1).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
+	drawShape(ctx, renderer) {
 
-
-		let topRight = new Vector2D(
-			this.diagonal.x - _centreOfRotation.x,
-			-_centreOfRotation.y,
-		).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
-
-		let bottomRight = new Vector2D(
-			this.diagonal.x - _centreOfRotation.x,
-			this.diagonal.y - _centreOfRotation.y,
-		).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
-		let bottomLeft = new Vector2D(
-			-_centreOfRotation.x,
-			this.diagonal.y - _centreOfRotation.y,
-		).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
-
+			
+		// Renderer: methods using object space (relative to its origin)
 		ctx.beginPath();
-		ctx.moveTo(topLeft.x, topLeft.y);
-		ctx.lineTo(topRight.x, topRight.y);
-		ctx.lineTo(bottomRight.x, bottomRight.y);
-		ctx.lineTo(bottomLeft.x, bottomLeft.y);
+		renderer.moveTo(new Vector2D(0, 0));
+		renderer.lineTo(new Vector2D(this.diagonal.x, 0));
+		renderer.lineTo(new Vector2D(this.diagonal.x, this.diagonal.y));
+		renderer.lineTo(new Vector2D(0, this.diagonal.y));
 		ctx.closePath();
+
+
+		// let topLeft = _centreOfRotation.copy().scale(-1).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
+
+
+		// let topRight = new Vector2D(
+		// 	this.diagonal.x - _centreOfRotation.x,
+		// 	-_centreOfRotation.y,
+		// ).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
+
+		// let bottomRight = new Vector2D(
+		// 	this.diagonal.x - _centreOfRotation.x,
+		// 	this.diagonal.y - _centreOfRotation.y,
+		// ).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
+		// let bottomLeft = new Vector2D(
+		// 	-_centreOfRotation.x,
+		// 	this.diagonal.y - _centreOfRotation.y,
+		// ).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
+
+		// ctx.beginPath();
+		// ctx.moveTo(topLeft.x, topLeft.y);
+		// ctx.lineTo(topRight.x, topRight.y);
+		// ctx.lineTo(bottomRight.x, bottomRight.y);
+		// ctx.lineTo(bottomLeft.x, bottomLeft.y);
+		// ctx.closePath();
 
 
 		// ctx.beginPath();

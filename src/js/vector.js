@@ -34,6 +34,10 @@ class BaseVector {
 		if (_Vec.unitary.lengthSquared === 0) return this.copy();
 		return _Vec.unitary.scale(this.dotProduct(_Vec.unitary));
 	}
+
+	subtract(_vec) {
+		return this.add(_vec.copy().scale(-1));
+	}
 }
 
 
