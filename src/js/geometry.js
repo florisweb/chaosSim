@@ -49,8 +49,6 @@ export class RectangleGeometry {
 	}
 
 	drawShape(ctx, renderer) {
-
-			
 		// Renderer: methods using object space (relative to its origin)
 		ctx.beginPath();
 		renderer.moveTo(new Vector2D(0, 0));
@@ -58,38 +56,42 @@ export class RectangleGeometry {
 		renderer.lineTo(new Vector2D(this.diagonal.x, this.diagonal.y));
 		renderer.lineTo(new Vector2D(0, this.diagonal.y));
 		ctx.closePath();
+	}
+}
 
 
-		// let topLeft = _centreOfRotation.copy().scale(-1).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
+
+export class CircleGeometry {
+	radius;
+	arms = 1;
+
+	get area() {
+		return 2 * Math.PI * this.radius**2;
+	}
+	get relativeCentreOfMass() {
+		return new Vector2D(0, 0)
+	}
+
+	calcInertia(_centreOfRotation) {
+		let rotCentreOffset = this.relativeCentreOfMass.difference(_centreOfRotation);
+		let rotCentreDist = rotCentreOffset.length;
+
+		let inertia = Math.PI / 4 * this.radius**4;
+		return inertia + rotCentreDist**2 * this.area;
+	}
 
 
-		// let topRight = new Vector2D(
-		// 	this.diagonal.x - _centreOfRotation.x,
-		// 	-_centreOfRotation.y,
-		// ).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);
 
-		// let bottomRight = new Vector2D(
-		// 	this.diagonal.x - _centreOfRotation.x,
-		// 	this.diagonal.y - _centreOfRotation.y,
-		// ).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
-		// let bottomLeft = new Vector2D(
-		// 	-_centreOfRotation.x,
-		// 	this.diagonal.y - _centreOfRotation.y,
-		// ).rotate(_angle).add(_centreOfRotation).add(_position).multiply(scalar);;
+	constructor(_radius) {
+		this.radius = _radius;
+	}
 
-		// ctx.beginPath();
-		// ctx.moveTo(topLeft.x, topLeft.y);
-		// ctx.lineTo(topRight.x, topRight.y);
-		// ctx.lineTo(bottomRight.x, bottomRight.y);
-		// ctx.lineTo(bottomLeft.x, bottomLeft.y);
-		// ctx.closePath();
+	drawShape(ctx, renderer) {
+			
+		// Renderer: methods using object space (relative to its origin)
+		renderer.moveTo(new Vector2D(0, 0));
+		renderer.drawCircle(new Vector2D(0, 0), this.radius);
 
-
-		// ctx.beginPath();
-		// ctx.moveTo((_position.x) * scalar.x, 					_position.y * scalar.y);
-		// ctx.lineTo((_position.x + this.diagonal.x) * scalar.x, 	_position.y * scalar.y);
-		// ctx.lineTo((_position.x + this.diagonal.x) * scalar.x, 	(_position.y + this.diagonal.y) * scalar.y);
-		// ctx.lineTo((_position.x) * scalar.x, 					(_position.y + this.diagonal.y) * scalar.y);
-		// ctx.closePath();
+		ctx.closePath();
 	}
 }

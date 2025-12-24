@@ -24,7 +24,7 @@ export class SpringConnector extends Connector {
 
 
 class SpringDynamic extends Dynamic {
-	k = 100;
+	k = 50;
 	constructor(_object, _other, _relConnPosSelf, _relConnPosOther) {
 		super(_object);
 		this._other = _other

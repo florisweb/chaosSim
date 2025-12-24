@@ -42,14 +42,14 @@ export class BottomWorldBoundDynamic extends Dynamic {
 }
 
 export class TransFrictionDynamic extends Dynamic {
-	scalar = .5;
+	scalar = .1;
 	applyForce(_dt, _simulation) {
 		this._object.applyForce(this._object.centreOfRotation, this._object.velocity.copy().scale(-this.scalar * this._object.mass));
 	}
 }
 
 export class RotFrictionDynamic extends Dynamic {
-	scalar = 0.5;
+	scalar = .1;
 	applyForce(_dt, _simulation) {
 		this._object.netTorque += this._object.angularVelocity * -this.scalar * this._object.inertia;
 	}

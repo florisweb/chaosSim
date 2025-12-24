@@ -1,6 +1,6 @@
 import { Vector2D } from './vector.js';
 
-import { RectangleGeometry } from './geometry.js' ;
+import { RectangleGeometry, CircleGeometry } from './geometry.js' ;
 import { ArmMaterial, BucketMaterial } from './material.js';
 import { GravityDynamic, BottomWorldBoundDynamic, TransFrictionDynamic, RotFrictionDynamic } from './dynamics.js';
 
@@ -121,6 +121,18 @@ class Object {
 
 
 
+export class WheelObject extends Object {
+	constructor({position, radius}) {
+		super(new CircleGeometry(radius), new ArmMaterial);
+		this.position = position;
+		
+		this.addRotationPin(new Vector2D(0, 0));
+
+		this.addDynamic(GravityDynamic);
+		this.addDynamic(RotFrictionDynamic);
+		// this.addDynamic(BottomWorldBoundDynamic);
+	}
+}
 
 export class ArmObject extends Object {
 	constructor({position, size, angle = 0}) {
@@ -130,8 +142,8 @@ export class ArmObject extends Object {
 		
 
 		// this.addDynamic(GravityDynamic);
-		this.addRotationPin(size.copy().scale(1));
-		// this.addDynamic(RotFrictionDynamic);
+		this.addRotationPin(size.copy().scale(.33));
+		this.addDynamic(RotFrictionDynamic);
 		// this.addDynamic(BottomWorldBoundDynamic);
 	}
 }

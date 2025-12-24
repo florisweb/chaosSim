@@ -77,6 +77,12 @@ export default class Renderer {
 		ctx.moveTo(pxCoords.x, pxCoords.y)
 	}
 
+	drawCircle(_pos, _rad) {
+		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
+		let pxRad = _rad * this.scalar.x;
+		ctx.circle(pxCoords.x, pxCoords.y, pxRad);
+	}	
+
 
 
 	drawVector(_start, _delta, _color = '#f00') {

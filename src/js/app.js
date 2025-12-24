@@ -1,8 +1,9 @@
 import { Vector2D, Vector3D } from './vector.js';
 import Simulation from './simulation.js';
 import Renderer from './renderer.js';
-import { ArmObject, BucketObject, AnchorObject } from './object.js';
 import { SpringConnector } from './connectors.js';
+
+import { ArmObject, BucketObject, AnchorObject, WheelObject } from './object.js';
 
 window.Vector2D = Vector2D;
 const App = new class {
@@ -31,24 +32,44 @@ const App = new class {
 		// const anchor = new AnchorObject({position: new Vector2D(20, 20)});
 		// this.simulation.objects.push(anchor);
 
-		const bucketSize = 2;
-		const armSize = new Vector2D(20, 0.5);
+		// const bucketSize = 2;
+		// const armSize = new Vector2D(20, 0.5);
 
-		let bucket = new BucketObject({position: new Vector2D(20 - bucketSize / 2, 25), size: new Vector2D(bucketSize, bucketSize)});
-		this.simulation.objects.push(bucket);
+		// let bucket1 = new BucketObject({position: new Vector2D(20 - bucketSize / 2, 25), size: new Vector2D(bucketSize, bucketSize)});
+		// // this.simulation.objects.push(bucket1);
 
-		let arm = new ArmObject({position: new Vector2D(20, 25), size: armSize, angle: 0})
-		this.simulation.objects.push(arm);
+		// let bucket2 = new BucketObject({position: new Vector2D(40 - bucketSize / 2, 25), size: new Vector2D(bucketSize, bucketSize * 0.5)});
+		// this.simulation.objects.push(bucket2);
 
-		arm.connect(bucket, new Vector2D(0, 0), new Vector2D(bucketSize / 2, bucketSize / 2), SpringConnector);
+
+		// let arm = new ArmObject({position: new Vector2D(20, 25), size: armSize, angle: 0})
+		// this.simulation.objects.push(arm);
+
+		// arm.connect(bucket1, new Vector2D(0, 0), new Vector2D(bucketSize / 2, 0), SpringConnector);
+		// arm.connect(bucket2, new Vector2D(armSize.x, 0), new Vector2D(bucketSize / 2, 0), SpringConnector);
 
 		
+		const wheelRadius = 10;
+		const wheelCentrePos = new Vector2D(20, 25);
+		let wheel = new WheelObject({position: wheelCentrePos, radius: wheelRadius})
+		this.simulation.objects.push(wheel);
 
-		// obj.connect(bucket, new Vector2D(0, 0), bucket.centreOfRotation, SpringConnector);
-		// anchor.connect(bucket, new Vector2D(0.5/2, 0.5/2), new Vector2D(0, 0), SpringConnector);
-		// anchor.connect(bucket, new Vector2D(0.5/2, 0.5/2), new Vector2D(1, 1), SpringConnector);
-		// bucket.connect(obj, new Vector2D(1, 0), new Vector2D(0, 0), SpringConnector);
 
+		const bucketSize = new Vector2D(2, 2);
+		const armSize = new Vector2D(20, 0.5);
+
+
+
+		const bucketCount = 10;
+
+		for (let b = 0; b < bucketCount; b++)
+		{
+			let angle = b / bucketCount * 2 * Math.PI;
+			let offset = new Vector2D(wheelRadius, 0).rotate(angle);
+			let bucket = new BucketObject({position: wheelCentrePos.copy().add(offset).add(bucketSize.copy().scale(-0.5)), size: bucketSize});
+			wheel.connect(bucket, offset, new Vector2D(bucketSize.x / 2, 0), SpringConnector);
+			this.simulation.objects.push(bucket);
+		}
 
 		this.setup().then(() => document.body.classList.remove('loading'));
 	}
@@ -64,8 +85,8 @@ const App = new class {
 	}
 
 	update() {
-		// for (let i = 0; i < 20; i++) 
 		this.renderer.draw(this.simulation);
+		// for (let i = 0; i < 20; i++) 
 		this.simulation.update();
 		setTimeout(() => this.update(), 1);
 	}
