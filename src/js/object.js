@@ -2,7 +2,7 @@ import { Vector2D } from './vector.js';
 
 import { RectangleGeometry } from './geometry.js' ;
 import { ArmMaterial, BucketMaterial } from './material.js';
-import { GravityDynamic, BottomWorldBoundDynamic } from './dynamics.js';
+import { GravityDynamic, BottomWorldBoundDynamic, TransFrictionDynamic, RotFrictionDynamic } from './dynamics.js';
 
 class Object {
 	geometry;
@@ -37,7 +37,7 @@ class Object {
 	connect(_other, _relConnPosSelf, _relConnPosOther, _connectorClass) {
 		let conn = new _connectorClass(this, _other, _relConnPosSelf, _relConnPosOther);
 		this.dynamics.push(conn.dynamicA);
-		// _other.dynamics.push(conn.dynamicB);
+		_other.dynamics.push(conn.dynamicB);
 	}
 
 
@@ -71,7 +71,7 @@ class Object {
 
 
 		this.netTorque += _force_worldCoords.dotProduct(delta_worldCoords.perpendicular);
-		if (!this.#positionPinned) this.netForce.add(_force); // Correct?
+		if (!this.#positionPinned) this.netForce.add(_force_worldCoords); // Correct?
 
 
 		let perpendicular = _force_worldCoords.projectOnTo(delta_worldCoords.perpendicular)
@@ -99,7 +99,6 @@ class Object {
 
 		// App.renderer.drawVector(this.position.copy().add(this.centreOfRotation.copy()), new Vector2D(0, -5), '#fa0');
 		// App.renderer.drawVector(this.position.copy(), new Vector2D(0, -5), '#af0');
-
 	}
 
 
@@ -130,8 +129,9 @@ export class ArmObject extends Object {
 		this.angle = angle;
 		
 
-		this.addDynamic(GravityDynamic);
-		this.addRotationPin(size.copy().scale(0));
+		// this.addDynamic(GravityDynamic);
+		this.addRotationPin(size.copy().scale(1));
+		// this.addDynamic(RotFrictionDynamic);
 		// this.addDynamic(BottomWorldBoundDynamic);
 	}
 }
@@ -142,17 +142,22 @@ export class BucketObject extends Object {
 		super(new RectangleGeometry(size), new BucketMaterial);
 		this.position = position;
 		this.angle = angle;
-		// this.addDynamic(GravityDynamic);
+		
 		// this.centreOfRotation = new Vector2D(size.x / 2, 0);
 		// this.addRotationPin(new Vector2D(0, 0));
+
+		this.addDynamic(GravityDynamic);
+		this.addDynamic(TransFrictionDynamic);
+		this.addDynamic(RotFrictionDynamic);
 	}
 }
 
 export class AnchorObject extends Object {
 	constructor({position, angle = 0}) {
-		super(new RectangleGeometry(new Vector2D(0.5, 0.5)), new ArmMaterial);
+		const size = new Vector2D(0.5, 0.5);
+		super(new RectangleGeometry(size), new ArmMaterial);
 		this.position = position;
-		this.addRotationPin(new Vector2D(0.5/2, 0.5/2));
+		this.addRotationPin(size.copy().scale(0.5));
 	}
 }
 
