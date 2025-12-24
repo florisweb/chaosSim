@@ -62,39 +62,26 @@ class Object {
 		}
 	}
 
-	applyForce(_relPosition, _force) { // _relPos: already rotated
-		let delta = this.centreOfRotation.difference(_relPosition);
-		let perpendicular = _force.projectOnTo(delta.perpendicular)
-		let parallel = _force.projectOnTo(delta);
+	applyForce(_pos_objectCoords, _force_worldCoords) {
 
-		this.netTorque += _force.dotProduct(delta.perpendicular);
-		// this.netForce.add(parallel);
+		let delta = _pos_objectCoords.difference(this.centreOfRotation); // this.centreOfRotation.difference(_pos_objectCoords); // Relative to centre of rotation (object space)
+		let delta_worldCoords = delta.copy().rotate(-this.angle);
+
+
+
+
+		this.netTorque += _force_worldCoords.dotProduct(delta_worldCoords.perpendicular);
 		if (!this.#positionPinned) this.netForce.add(_force); // Correct?
 
-		// console.log(_relPosition, _force)
-		// App.renderer.drawVector(this.position.copy().add(_relPosition), _force.copy().scale(1), '#f00');
 
-		// App.renderer.drawVector(
-		// 	this.centreOfRotation.copy().scale(-1).rotate(this.angle).add(this.centreOfRotation).add(this.position),
-		// 	_force.copy().scale(5), '#aaa');
-			
-
-		let perp = perpendicular.copy();
-		perp.length = this.netTorque
-		// App.renderer.drawVector(
-		// 	delta.copy().scale(-1).rotate(this.angle).add(delta).add(this.position),
-		// 	new Vector2D(0, 1), '#f00');
-		
+		let perpendicular = _force_worldCoords.projectOnTo(delta_worldCoords.perpendicular)
 		App.renderer.drawVector(
-			_relPosition.copy().add(this.position),
-			_force.copy().scale(1), '#f00');
+			this.objectCoordToWorldCoord(_pos_objectCoords),
+			_force_worldCoords.copy().scale(.01), '#555');
 
 		App.renderer.drawVector(
-			_relPosition.copy().add(this.position),
-			perpendicular.copy().scale(1), '#00f');
-
-		// App.renderer.drawVector(this.position.copy().add(_relPosition), perpendicular.copy().scale(1), '#0f0');
-		// App.renderer.drawVector(this.position.copy().add(_relPosition), parallel.copy().scale(1), '#00f');
+			this.objectCoordToWorldCoord(_pos_objectCoords),
+			perpendicular.copy().scale(0.01), '#fff');
 	}
 
 
@@ -124,7 +111,7 @@ class Object {
 		let deltaFromCentre_object = deltaFromCentre_world.copy().rotate(this.angle);
 		return deltaFromCentre_object.add(this.centreOfRotation);
 	}
-	
+
 	objectCoordToWorldCoord(_vec2d) {
 		let deltaFromCentre_object = _vec2d.copy().subtract(this.centreOfRotation);
 		let deltaFromCentre_world = deltaFromCentre_object.copy().rotate(-this.angle);
@@ -143,8 +130,8 @@ export class ArmObject extends Object {
 		this.angle = angle;
 		
 
-		// this.addDynamic(GravityDynamic);
-		this.addRotationPin(size.copy().scale(0.5));
+		this.addDynamic(GravityDynamic);
+		this.addRotationPin(size.copy().scale(0));
 		// this.addDynamic(BottomWorldBoundDynamic);
 	}
 }
