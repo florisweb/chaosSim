@@ -16,9 +16,10 @@ export default class Recorder {
 		this.data.push({
 			time: simulation.time,
 			angle: simulation.objects[0].angle
-		})
+		});
 
 		this.#lastRecordTime = simulation.time;
+		this.onDataChange(this.data);
 	}
 
 	dataToCSV(_header = 'Time (s), angle') {
@@ -38,6 +39,11 @@ export default class Recorder {
 	    a.download = 'data.csv';
 	    a.click();
 	}
+
+	
+
+	// Hook
+	onDataChange(_data) {}
 }
 
 
