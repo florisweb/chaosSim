@@ -17,7 +17,7 @@ const App = new class {
 		window.App = this;
 		let size = new Vector2D(50, 50);
 
-		this.renderer = new Renderer({canvas: document.querySelector('#worldCanvas')});
+		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), simulationSize: size});
 		this.simulation = new Simulation({size: size});
 		this.recorder = new Recorder({recordInterval: 0.1});
 

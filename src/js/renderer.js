@@ -13,7 +13,7 @@ export default class Renderer {
 
 	curObject;
 
-	constructor({canvas}) {
+	constructor({canvas, simulationSize}) {
 		this.canvas = canvas;
 		ctx = this.canvas.getContext('2d');
 		ctx.constructor.prototype.circle = function(x, y, size) {
@@ -34,9 +34,14 @@ export default class Renderer {
 
 		window.onresize = () => {
 			const pxScalar = 2;
-			worldCanvas.width = worldCanvas.offsetWidth * pxScalar;
-			worldCanvas.height = worldCanvas.offsetHeight * pxScalar;
-			this.size = new Vector2D(worldCanvas.width, worldCanvas.height);
+			this.canvas.width = this.canvas.offsetWidth * pxScalar;
+			this.canvas.height = this.canvas.offsetHeight * pxScalar;
+			this.size = new Vector2D(this.canvas.width, this.canvas.height);
+
+			this.scalar = new Vector2D(
+				this.size.y / simulationSize.y, // [use same scalar as x for non-squased graph]  // this.size.x / simulationSize.x
+				this.size.y / simulationSize.y // [use same scalar as x for non-squased graph]  // 
+			);
 		}
 		window.onresize();
 	}
@@ -44,10 +49,6 @@ export default class Renderer {
 	draw(_simulation) {
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		this.scalar = new Vector2D(
-			this.size.x / _simulation.size.x,
-			this.size.y / _simulation.size.y // Negative as lower is higher in canvas-space
-		);
 		for (let object of _simulation.objects)
 		{
 			this.drawObject(object);
@@ -91,8 +92,24 @@ export default class Renderer {
 
 	drawCircle(_pos, _rad) {
 		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		let pxRad = _rad * this.scalar.x;
-		ctx.circle(pxCoords.x, pxCoords.y, pxRad);
+		const gradient = ctx.createConicGradient(-this.curObject.angle, pxCoords.x, pxCoords.y);
+
+		// Add five color stops
+		gradient.addColorStop(0, ctx.fillStyle);
+		gradient.addColorStop(1, ctx.fillStyle + 'd0');
+
+		ctx.fillStyle = gradient;
+		ctx.beginPath();
+	    ctx.ellipse(
+	      pxCoords.x, 
+	      pxCoords.y, 
+	      _rad * this.scalar.x,
+	      _rad * this.scalar.y,
+	      0,
+	      0,
+	      2 * Math.PI
+	    );
+	    ctx.closePath();
 	}	
 
 
