@@ -247,11 +247,11 @@ export class TrueBucketObject extends ObjectGroup {
 	}
 
 	customUpdate(_dt) {
-		this.fullPerc -= 0.01 * _dt;
+		this.fullPerc -= 0.005 * _dt;
 		// if (this.angle > Math.PI * 0.5 && this.angle < Math.PI * 1.5) this.fullPerc -= 0.5 * _dt;
 
 		if (this.position.y > 17) return;
-		this.fullPerc += 0.05 * _dt;
+		this.fullPerc += 0.03 * _dt;
 	}
 }
 

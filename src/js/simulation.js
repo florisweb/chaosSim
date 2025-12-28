@@ -8,12 +8,17 @@ export default class Simulation {
 	world = [];
 	objects = [];
 	config = {
-		maxDt: 0.01
+		maxDt: 0.02
 	}
+	#speed = 1;
 	
 
 	constructor({size}) {
 		this.size = size;
+	}
+
+	setSpeed(_speed) {
+		this.#speed  = _speed;
 	}
 
 	
@@ -21,27 +26,35 @@ export default class Simulation {
 	updates = 0;
 	time = 0;
 	update() {
-		this.updates++;
 		let dt = Math.min((new Date() - this.#lastUpdate) / 1000, this.config.maxDt);
-		dt *= 5;
-		dt = 0.05;
+		
+		for (let i = 0; i < this.#speed; i++)
+			this.#runSingleUpdate(dt);
 
-		this.time += dt;
+		this.#lastUpdate = new Date();
+	}
+
+	#runSingleUpdate(_dt) {
+		this.updates++;
+
+		this.time += _dt;
 		for (let obj of this.objects)
 		{
-			obj.customUpdate(dt);
+			obj.customUpdate(_dt);
 		}
 
 		for (let obj of this.objects)
 		{
-			obj.applyNetForceConsequences(dt);
+			obj.applyNetForceConsequences(_dt);
 		}
 		
 		for (let obj of this.objects)
 		{
-			obj.calcForces(dt, this);
+			obj.calcForces(_dt, this);
 		}
-
-		this.#lastUpdate = new Date();
+		this.onUpdate();
 	}
+
+	// Hook
+	onUpdate() {}
 }

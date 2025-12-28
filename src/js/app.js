@@ -4,6 +4,7 @@ import Renderer from './renderer.js';
 import Recorder from './recorder.js';
 import ChaoticWaterWheelProblem from './problem.js';
 import GraphPanel from './graphPanel.js';
+import SimulationPanel from './simulationPanel.js';
 
 import { SpringConnector } from './connectors.js';
 
@@ -22,6 +23,8 @@ const App = new class {
 		this.simulation = new Simulation({size: size});
 		this.recorder = new Recorder({recordInterval: 0.1});
 		this.graphPanel = new GraphPanel();
+		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
+
 		let graphUpdateTimeout;
 		this.recorder.onDataChange = (_data) => {
 			if (graphUpdateTimeout) return;
@@ -29,6 +32,9 @@ const App = new class {
 				this.graphPanel.update(_data);
 				graphUpdateTimeout = null;
 			}, 200);
+		}
+		this.simulation.onUpdate = () => {
+			this.recorder.record(this.simulation);
 		}
 
 		// let problem = new ChaoticWaterWheelProblem({})
@@ -42,9 +48,6 @@ const App = new class {
 		
 
 		
-
-
-
 		// const anchor = new AnchorObject({position: new Vector2D(20, 20)});
 		// this.simulation.objects.push(anchor);
 
@@ -140,9 +143,10 @@ const App = new class {
 		if (this.simulation.time > 6000) return;
 
 		this.renderer.draw(this.simulation);
-		for (let i = 0; i < 10; i++) 
-			this.simulation.update();
-			this.recorder.record(this.simulation);
+	
+		this.simulation.update();
+
+		this.simulationPanel.update(this.simulation);
 		setTimeout(() => this.update(), 1);
 	}
 }

@@ -1,9 +1,11 @@
 * {
 	box-sizing: border-box;
+  	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
 :root {
 	--panelColor: #191919;
+	--overlayColor: #212121;
 	--panelBorderRadius: 5px;
 	--headerHeight: 50px;
 }
@@ -42,10 +44,19 @@ body {
 }
 
 
+
+.UIPanel.graphPanel {
+	grid-area: graphPanel;
+	width: 50vw;
+}
+
+
+
+
 .UIPanel.simulationPanel {
 	grid-area: simulationPanel;
-
 }
+
 
 #simulationCanvas {
 	position: relative;
@@ -55,8 +66,59 @@ body {
 	height: 100%;
 }
 
+.UIPanel.simulationPanel .controlPanel {
+	position: relative;
+	bottom: calc(50px + 0px);
+	left: 50%;
+	transform: translate(-50%, -50%);
+	
+	display: inline-flex;
+	/*width: 200px;*/
+	height: 50px;
+	padding: 10px;
 
-.UIPanel.graphPanel {
-	grid-area: graphPanel;
-	width: 50vw;
+
+	background: var(--overlayColor);
+	border-radius: calc(var(--panelBorderRadius) * 2);
+
+	border: 1px solid #373737;
+	box-shadow: 10px 10xp 10px 10px rgba(255, 255, 255, 0.1);
 }
+
+.UIPanel.simulationPanel .controlPanel > * {
+	white-space: nowrap;
+	/*border: 1px solid blue;*/
+	color: #fff;
+	margin: 0 5px;
+	line-height: 28px;
+}
+
+.UIPanel.simulationPanel .controlPanel .text {
+	color: #aaa;
+}
+.UIPanel.simulationPanel .controlPanel .text {
+	min-width: 40px;
+	text-align: center;
+}
+
+.UIPanel.simulationPanel .controlPanel .startStopButton {
+	width: 40px;
+	text-align: center;
+	font-size: 30px;
+	line-height: 25px;
+	cursor: pointer;
+}
+
+
+.UIPanel.simulationPanel .controlPanel .startStopButton[speedState='0']:after {
+	content: '⏵'
+}
+.UIPanel.simulationPanel .controlPanel .startStopButton:after {
+	content: '⏭'
+}
+.UIPanel.simulationPanel .controlPanel .startStopButton[speedState='100']:after {
+	content: '⏸'
+}
+
+
+
