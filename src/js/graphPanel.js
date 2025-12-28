@@ -3,8 +3,6 @@ import Plotly from 'plotly.js-dist';
 window.Plotly = Plotly
 
 export default class GraphPanel {
-
-	#data = [];
 	update(_data) {
 		if (_data.length === 0) return;
 		let props = Object.keys(_data[0]).filter(k => k != 'time');
@@ -21,7 +19,11 @@ export default class GraphPanel {
 				  	name: prop
 				});
 			}
-			Plotly.newPlot('graphPanel', this.#data);
+
+			var layout = {
+			    showlegend: true
+			};
+			Plotly.newPlot('graphPanel', this.#data, layout, {displayModeBar: false, displaylogo: false});
 		} else {
 			for (let p = 0; p < props.length; p++)
 			{
