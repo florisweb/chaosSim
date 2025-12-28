@@ -3,18 +3,19 @@ import Plotly from 'plotly.js-dist';
 window.Plotly = Plotly
 
 export default class GraphPanel {
-	
-	constructor() {
 
-	}
 
 	update(_data) {
-		let trace = {
-			x: _data.map(r => r.time),
-		  	y: _data.map(r => r.angle),
-		  	mode: 'markers',
-		  	type: 'scatter'
-		}
-		Plotly.newPlot('graphPanel', [trace]);
+		if (_data.length === 0) return;
+		let props = Object.keys(_data[0]).filter(k => k != 'time');
+		let data = [];
+		for (let prop of props)
+			data.push({
+				x: _data.map(r => r.time),
+			  	y: _data.map(r => r[prop]),
+			  	mode: 'markers',
+			  	type: 'scatter'
+			});
+		Plotly.newPlot('graphPanel', data);
 	}
 }

@@ -35,7 +35,7 @@ class Object {
 		this.material = _material;
 	}
 
-	connect(_other, _relConnPosSelf, _relConnPosOther, _connectorClass) {
+	connect(_other, _connectorClass, _relConnPosSelf, _relConnPosOther) {
 		let conn = new _connectorClass(this, _other, _relConnPosSelf, _relConnPosOther);
 		this.dynamics.push(conn.dynamicA);
 		_other.dynamics.push(conn.dynamicB);
@@ -359,3 +359,22 @@ export class AnchorObject extends Object {
 
 
 
+
+
+export class NodeObject extends Object {
+	constructor({position}) {
+		const radius = 0.5;
+		super(new CircleGeometry(radius), new ArmMaterial);
+		this.position = position;
+		this.addDynamic(GravityDynamic);
+		this.addDynamic(TransFrictionDynamic);
+	}
+}
+
+
+export class AnchorNodeObject extends NodeObject {
+	constructor({position}) {
+		super(...arguments);
+		this.addRotationPin(new Vector2D(0, 0));
+	}
+}

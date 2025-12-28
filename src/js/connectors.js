@@ -28,13 +28,13 @@ export class SpringConnector extends Connector {
 
 class SpringDynamic extends Dynamic {
 	otherDynamic;
-	k = 50;
+	k = 1000;
 
 	constructor(_object, _other, _relConnPosSelf, _relConnPosOther) {
 		super(_object);
 		this._other = _other
-		this.relConnPosSelf = _relConnPosSelf;
-		this.relConnPosOther = _relConnPosOther;
+		this.relConnPosSelf = _relConnPosSelf || this._object.centreOfRotation;
+		this.relConnPosOther = _relConnPosOther || this._other.centreOfRotation;
 	}
 
 	delete(_initialCall = true) {

@@ -8,19 +8,11 @@ export class Problem {
 	name = '';
 	constants = {}
 	parameters = {}
+	recordables = [];
 
 	
-	constructor({parameters}) {
-
-	}
-
-
-	setup(simulation) {
-
-	}
-
-
-
+	constructor({parameters}) {}
+	setup(simulation) {}
 }
 
 
@@ -41,6 +33,13 @@ export class ChaoticWaterWheelProblem extends Problem {
 		}
 	}
 
+	recordables = [
+		{
+			name: 'angle',
+			get: (_simulation) => _simulation.objects[0].angle
+		}
+	];
+
 
 	constructor({parameters}) {
 		super({parameters});
@@ -56,11 +55,56 @@ export class ChaoticWaterWheelProblem extends Problem {
 			let offset = new Vector2D(this.constants.wheel.radius, 0).rotate(angle);
 			let bucket = new TrueBucketObject({
 				position: this.constants.wheel.position.copy().add(offset).add(this.constants.buckets.size.copy().scale(-0.5)), 
-				size: bucketSize, 
-				wallThickness: wallThickness
+				size: this.constants.buckets.size, 
+				wallThickness: this.constants.buckets.wallThickness
 			});
-			wheel.connect(bucket, offset, new Vector2D(this.constants.buckets.size.x / 2, 0), SpringConnector);
+			wheel.connect(bucket, SpringConnector, offset, new Vector2D(this.constants.buckets.size.x / 2, 0));
 			simulation.objects.push(bucket);
 		}
+	}
+}
+
+
+import { NodeObject, AnchorNodeObject } from './object.js';
+
+export class BridgeProblem extends Problem {
+	name = 'Bridge';
+	constants = {
+		elementCount: 20,
+		leftPolePos: new Vector2D(10, 20),
+		rightPolePos: new Vector2D(30, 20)
+	}
+
+	recordables = [
+		{
+			name: 'yPosCentreNode',
+			get: (_simulation) => _simulation.objects[Math.floor(this.constants.elementCount / 2)].position.y
+		}
+	];
+
+
+	constructor({parameters}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		let leftPole = new AnchorNodeObject({position: this.constants.leftPolePos});
+		let rightPole = new AnchorNodeObject({position: this.constants.rightPolePos});
+		simulation.objects.push(leftPole);
+		simulation.objects.push(rightPole);
+
+		let prevPole = leftPole;
+		for (let i = 1; i < this.constants.elementCount - 1; i++)
+		{
+			let pos = this.constants.leftPolePos.copy().add(this.constants.leftPolePos.difference(this.constants.rightPolePos).scale(i / (this.constants.elementCount - 1)));
+			let pole = new NodeObject({position: pos});
+			pole.connect(prevPole, SpringConnector);
+			simulation.objects.push(pole);
+			prevPole = pole;
+		}
+
+		prevPole.connect(rightPole, SpringConnector);
+		// todo add to last pole
+
 	}
 }

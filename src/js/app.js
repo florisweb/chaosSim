@@ -2,7 +2,7 @@ import { Vector2D, Vector3D } from './vector.js';
 import Simulation from './simulation.js';
 import Renderer from './renderer.js';
 import Recorder from './recorder.js';
-import ChaoticWaterWheelProblem from './problem.js';
+import { ChaoticWaterWheelProblem, BridgeProblem}from './problem.js';
 import GraphPanel from './graphPanel.js';
 import SimulationPanel from './simulationPanel.js';
 
@@ -21,7 +21,7 @@ const App = new class {
 
 		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), simulationSize: size});
 		this.simulation = new Simulation({size: size});
-		this.recorder = new Recorder({recordInterval: 0.1});
+		this.recorder = new Recorder({recordInterval: 1});
 		this.graphPanel = new GraphPanel();
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
 
@@ -34,10 +34,14 @@ const App = new class {
 			}, 200);
 		}
 		this.simulation.onUpdate = () => {
-			this.recorder.record(this.simulation);
+			this.recorder.record(this.simulation, this.problem);
 		}
 
-		// let problem = new ChaoticWaterWheelProblem({})
+		// this.problem = new ChaoticWaterWheelProblem({})
+		this.problem = new BridgeProblem({});
+		this.problem.setup(this.simulation);
+
+
 
 		// for (let i = 0; i < 4; i++)
 		// {
@@ -98,30 +102,27 @@ const App = new class {
 
 
 
-		const wheelRadius = 10;
-		const wheelCentrePos = new Vector2D(20, 25);
-		let wheel = new WheelObject({position: wheelCentrePos, radius: wheelRadius})
-		this.simulation.objects.push(wheel);
+		// const wheelRadius = 10;
+		// const wheelCentrePos = new Vector2D(20, 25);
+		// let wheel = new WheelObject({position: wheelCentrePos, radius: wheelRadius})
+		// this.simulation.objects.push(wheel);
 
 
-		const bucketSize = new Vector2D(2, 2);
-		const armSize = new Vector2D(20, 0.5);
-
-
-
-		const bucketCount = 10;
-
-		for (let b = 0; b < bucketCount; b++)
-		{
-			let angle = b / bucketCount * 2 * Math.PI;
-			let offset = new Vector2D(wheelRadius, 0).rotate(angle);
-			let bucket = new TrueBucketObject({position: wheelCentrePos.copy().add(offset).add(bucketSize.copy().scale(-0.5)), size: bucketSize, wallThickness: 0.1});
-			wheel.connect(bucket, offset, new Vector2D(bucketSize.x / 2, 0), SpringConnector);
-			this.simulation.objects.push(bucket);
-		}
+		// const bucketSize = new Vector2D(2, 2);
+		// const armSize = new Vector2D(20, 0.5);
 
 
 
+		// const bucketCount = 10;
+
+		// for (let b = 0; b < bucketCount; b++)
+		// {
+		// 	let angle = b / bucketCount * 2 * Math.PI;
+		// 	let offset = new Vector2D(wheelRadius, 0).rotate(angle);
+		// 	let bucket = new TrueBucketObject({position: wheelCentrePos.copy().add(offset).add(bucketSize.copy().scale(-0.5)), size: bucketSize, wallThickness: 0.1});
+		// 	wheel.connect(bucket, SpringConnector, offset, new Vector2D(bucketSize.x / 2, 0));
+		// 	this.simulation.objects.push(bucket);
+		// }
 
 
 

@@ -10,12 +10,18 @@ export default class Recorder {
 	}
 
 	#lastRecordTime = 0;
-	record(simulation) {
+	record(simulation, problem) {
 		if (simulation.time - this.#lastRecordTime < this.recordInterval) return;
-
+		let recordables = {};
+		for (let rec of problem.recordables)
+		{
+			let value = rec.get(simulation);
+			recordables[rec.name] = value;
+		}
+		
 		this.data.push({
 			time: simulation.time,
-			angle: simulation.objects[0].angle
+			...recordables,
 		});
 
 		this.#lastRecordTime = simulation.time;
