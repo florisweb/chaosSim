@@ -21,7 +21,7 @@ const App = new class {
 
 		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), simulationSize: size});
 		this.simulation = new Simulation({size: size});
-		this.recorder = new Recorder({recordInterval: 1});
+		this.recorder = new Recorder({recordInterval: .1});
 		this.graphPanel = new GraphPanel();
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
 

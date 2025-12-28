@@ -71,14 +71,18 @@ export class BridgeProblem extends Problem {
 	name = 'Bridge';
 	constants = {
 		elementCount: 20,
-		leftPolePos: new Vector2D(10, 20),
-		rightPolePos: new Vector2D(30, 20)
+		leftPolePos: new Vector2D(10, 25),
+		rightPolePos: new Vector2D(40, 20)
 	}
 
 	recordables = [
 		{
 			name: 'yPosCentreNode',
 			get: (_simulation) => _simulation.objects[Math.floor(this.constants.elementCount / 2)].position.y
+		},
+		{
+			name: 'yPosCentreNode2',
+			get: (_simulation) => _simulation.objects[Math.floor(this.constants.elementCount / 4)].position.y
 		}
 	];
 
@@ -104,7 +108,5 @@ export class BridgeProblem extends Problem {
 		}
 
 		prevPole.connect(rightPole, SpringConnector);
-		// todo add to last pole
-
 	}
 }
