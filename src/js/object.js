@@ -378,3 +378,17 @@ export class AnchorNodeObject extends NodeObject {
 		this.addRotationPin(new Vector2D(0, 0));
 	}
 }
+
+
+
+
+export class PendulumArm extends Object {
+	constructor({position, size, fixed = false}) {
+		super(new RectangleGeometry(size), new ArmMaterial);
+		this.position = position;
+		
+		this.addDynamic(GravityDynamic);
+		this.addDynamic(RotFrictionDynamic);
+		if (fixed) this.addRotationPin(new Vector2D(0, size.y/2));
+	}
+}

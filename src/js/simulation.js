@@ -28,8 +28,8 @@ export default class Simulation {
 	update() {
 		let dt = Math.min((new Date() - this.#lastUpdate) / 1000, this.config.maxDt);
 		
-		for (let i = 0; i < this.#speed; i++)
-			this.#runSingleUpdate(dt);
+		for (let i = 0; i < this.#speed * 2; i++)
+			this.#runSingleUpdate(dt / 2);
 
 		this.#lastUpdate = new Date();
 	}

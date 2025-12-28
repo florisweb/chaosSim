@@ -3,6 +3,7 @@ import Plotly from 'plotly.js-dist';
 window.Plotly = Plotly
 
 export default class GraphPanel {
+	#data = [];
 	update(_data) {
 		if (_data.length === 0) return;
 		let props = Object.keys(_data[0]).filter(k => k != 'time');

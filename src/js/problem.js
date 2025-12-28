@@ -110,3 +110,42 @@ export class BridgeProblem extends Problem {
 		prevPole.connect(rightPole, SpringConnector);
 	}
 }
+
+import { PendulumArm } from './object.js';
+
+export class DoublePendulumProblem extends Problem {
+	name = 'Double Pendulum';
+	constants = {
+		topBarPos: new Vector2D(20, 15),
+		barSize: new Vector2D(10, 0.1)
+	}
+
+	recordables = [
+		{
+			name: 'topAngle',
+			get: (_simulation) => _simulation.objects[0].angle
+		},
+		{
+			name: 'bottomAngle',
+			get: (_simulation) => _simulation.objects[1].angle
+		}
+	];
+
+
+	constructor({parameters}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		let topPendulum = new PendulumArm({position: this.constants.topBarPos, size: this.constants.barSize, fixed: true});
+		let bottomPendulum = new PendulumArm({position: this.constants.topBarPos.copy().add(this.constants.barSize), size: this.constants.barSize});
+		bottomPendulum.centreOfRotation = new Vector2D(0, this.constants.barSize.y / 2);
+		topPendulum.connect(bottomPendulum, SpringConnector, new Vector2D(this.constants.barSize.x, this.constants.barSize.y / 2), new Vector2D(0, this.constants.barSize.y / 2));
+
+		simulation.objects.push(topPendulum);
+		simulation.objects.push(bottomPendulum);
+		
+
+		// prevPole.connect(rightPole, SpringConnector);
+	}
+}
