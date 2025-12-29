@@ -3,9 +3,11 @@ import Simulation from './simulation.js';
 import Renderer from './renderer.js';
 import Recorder from './recorder.js';
 import { ChaoticWaterWheelProblem, BridgeProblem, DoublePendulumProblem } from './problem.js';
+
 import GraphPanel from './graphPanel.js';
 import SimulationPanel from './simulationPanel.js';
-import HeaderPanel from './HeaderPanel.js';
+import HeaderPanel from './headerPanel.js';
+import ControlPanel from './controlPanel.js';
 
 
 window.Vector2D = Vector2D;
@@ -23,6 +25,7 @@ const App = new class {
 		this.graphPanel = new GraphPanel();
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
 		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')});
+		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
 
 
 		let graphUpdateTimeout;
@@ -47,6 +50,7 @@ const App = new class {
 
 	loadProblem(_problem) {
 		this.headerPanel.onProblemChange(_problem);
+		this.controlPanel.onProblemChange(_problem);
 		this.problem = _problem;
 		this.problem.setup(this.simulation);
 	}

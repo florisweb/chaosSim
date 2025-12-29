@@ -4,3 +4,9 @@ export function setTextToElement(element, text) {
   a.text = text;
   element.append(a);
 }
+
+export function createElement(_tag, _class) {
+  let el = document.createElement(_tag);
+  if (_class) el.classList.add(_class);
+  return el;
+}

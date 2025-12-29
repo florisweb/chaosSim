@@ -1,0 +1,51 @@
+
+.UIPanel.controlPanel {
+	grid-area: controlPanel;
+	padding: 20px;
+}
+
+
+.UIPanel.controlPanel .section {
+	position: relative;
+	margin-top: 15px;
+}
+
+.UIPanel.controlPanel .section .sectionHeader {
+	color: #777;
+	font-size: 12px;
+	text-transform: uppercase;	
+}
+
+.UIPanel.controlPanel .section .sectionContents {
+	display: flex;
+	flex-direction: column;
+}
+
+.UIPanel.controlPanel .section .sectionContents .propItem {
+	margin-left: 15px;
+	display: flex;
+}
+.UIPanel.controlPanel .section .sectionContents .propItem.object {
+	flex-direction: column;
+}
+.UIPanel.controlPanel .section .sectionContents > .propItem {
+	margin-left: 0;
+	margin-top: 5px;
+}
+
+
+.UIPanel.controlPanel .section .sectionContents .propName, 
+.UIPanel.controlPanel .section .sectionContents .propValue {
+	color: #888;
+	font-size: 12px;
+}
+
+.UIPanel.controlPanel .section .sectionContents .propName {
+
+	font-style: italic;
+}
+
+.UIPanel.controlPanel .section .sectionContents .propItem:not(.object) > .propValue {
+	margin-left: auto;
+}
+
