@@ -1,0 +1,25 @@
+.plot-container.plotly {
+	--textColor: #777;
+	--axisLineColor: #333;
+	--zeroAxisLineColor: #555;
+
+}
+
+.plot-container.plotly .main-svg {
+	background: none !important;
+}
+
+.plot-container.plotly .legend .bg {
+	fill: none !important;
+}
+.plot-container.plotly text {
+	fill: var(--textColor) !important;
+}
+
+.plot-container.plotly .gridlayer path {
+	stroke: var(--axisLineColor) !important;
+}
+
+.plot-container.plotly .zerolinelayer path {
+	stroke: var(--zeroAxisLineColor) !important;
+}
