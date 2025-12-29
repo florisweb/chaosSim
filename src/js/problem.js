@@ -35,8 +35,8 @@ export class ChaoticWaterWheelProblem extends Problem {
 		}
 	}
 	parameters = {
-		leakSpeed: 0.01,
-		fillSpeed: 0.06,
+		leakSpeed: 0.01269,
+		fillSpeed: 0.05,
 	}
 
 	recordables = [

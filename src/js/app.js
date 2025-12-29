@@ -27,7 +27,7 @@ const App = new class {
 
 		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), simulationSize: size});
 		this.simulation = new Simulation({size: size});
-		this.recorder = new Recorder({recordInterval: 1});
+		this.recorder = new Recorder({recordInterval: 2});
 		this.graphPanel = new GraphPanel();
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
 		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this);
@@ -35,12 +35,17 @@ const App = new class {
 
 
 		let graphUpdateTimeout;
+		let graphUpdateTimeoutLength = 200;
 		this.recorder.onDataChange = (_data) => {
 			if (graphUpdateTimeout) return;
 			graphUpdateTimeout = setTimeout(() => {
+				let startTime = new Date()
 				this.graphPanel.update(_data);
+				let delta = new Date() - startTime;
+				console.log(delta);
+				graphUpdateTimeoutLength = delta**2 * 0.1;
 				graphUpdateTimeout = null;
-			}, 200);
+			}, graphUpdateTimeoutLength);
 		}
 		this.simulation.onUpdate = () => {
 			this.recorder.record(this.simulation, this.problem);
@@ -74,12 +79,8 @@ const App = new class {
 	}
 
 	update() {
-		if (this.simulation.time > 6000) return;
-
 		this.renderer.draw(this.simulation);
-	
 		this.simulation.update();
-
 		this.simulationPanel.update(this.simulation);
 		setTimeout(() => this.update(), 1);
 	}
