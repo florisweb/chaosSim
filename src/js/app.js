@@ -42,8 +42,7 @@ const App = new class {
 				let startTime = new Date()
 				this.graphPanel.update(_data);
 				let delta = new Date() - startTime;
-				console.log(delta);
-				graphUpdateTimeoutLength = delta**2 * 0.1;
+				graphUpdateTimeoutLength = delta**1.5 * 0.1;
 				graphUpdateTimeout = null;
 			}, graphUpdateTimeoutLength);
 		}
