@@ -39,10 +39,6 @@ body {
 }
 
 
-.UIPanel.headerPanel {
-	grid-area: header;
-}
-
 
 
 .UIPanel.graphPanel {
@@ -122,3 +118,18 @@ body {
 
 
 
+
+
+
+.UIPanel.headerPanel {
+	grid-area: header;
+	display: flex;
+	padding: 10px;
+}
+.UIPanel.headerPanel .item {
+	position: relative;
+	line-height: 30px;
+	height: 30px;
+	color: #ccc;
+	font-size: 18px;
+}

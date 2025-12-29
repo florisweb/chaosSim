@@ -41,7 +41,7 @@ export class ChaoticWaterWheelProblem extends Problem {
 	];
 
 
-	constructor({parameters}) {
+	constructor({parameters} = {}) {
 		super({parameters});
 	}
 
@@ -87,7 +87,7 @@ export class BridgeProblem extends Problem {
 	];
 
 
-	constructor({parameters}) {
+	constructor({parameters} = {}) {
 		super({parameters});
 	}
 
@@ -132,7 +132,7 @@ export class DoublePendulumProblem extends Problem {
 	];
 
 
-	constructor({parameters}) {
+	constructor({parameters} = {}) {
 		super({parameters});
 	}
 

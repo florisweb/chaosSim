@@ -5,6 +5,7 @@ import Recorder from './recorder.js';
 import { ChaoticWaterWheelProblem, BridgeProblem, DoublePendulumProblem } from './problem.js';
 import GraphPanel from './graphPanel.js';
 import SimulationPanel from './simulationPanel.js';
+import HeaderPanel from './HeaderPanel.js';
 
 
 window.Vector2D = Vector2D;
@@ -21,6 +22,8 @@ const App = new class {
 		this.recorder = new Recorder({recordInterval: 1});
 		this.graphPanel = new GraphPanel();
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
+		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')});
+
 
 		let graphUpdateTimeout;
 		this.recorder.onDataChange = (_data) => {
@@ -35,12 +38,17 @@ const App = new class {
 		}
 
 		// this.problem = new ChaoticWaterWheelProblem({})
-		this.problem = new DoublePendulumProblem({});
-		this.problem.setup(this.simulation);
+		this.loadProblem(new ChaoticWaterWheelProblem());
 
 
 
 		this.setup().then(() => document.body.classList.remove('loading'));
+	}
+
+	loadProblem(_problem) {
+		this.headerPanel.onProblemChange(_problem);
+		this.problem = _problem;
+		this.problem.setup(this.simulation);
 	}
 
 	async setup() {
