@@ -224,7 +224,9 @@ export class ObjectGroup extends Object {
 
 export class TrueBucketObject extends ObjectGroup {
 	#waterObject;
-	constructor({position, size, wallThickness}) {
+	#leakSpeed;
+	#fillSpeed;
+	constructor({position, size, wallThickness, leakSpeed, fillSpeed}) {
 		let left = new BucketWallObject({position: new Vector2D(0, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
 		let bottom = new BucketWallObject({position: new Vector2D(0, size.y - wallThickness), size: new Vector2D(size.x, wallThickness)});
 		let right = new BucketWallObject({position: new Vector2D(size.x - wallThickness, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
@@ -232,6 +234,8 @@ export class TrueBucketObject extends ObjectGroup {
 
 		super([bottom, left, right, water]);
 		this.#waterObject = water;
+		this.#leakSpeed = leakSpeed;
+		this.#fillSpeed = fillSpeed;
 
 		this.position = position;
 		this.centreOfRotation = this.relativeCentreOfMass;
@@ -247,11 +251,11 @@ export class TrueBucketObject extends ObjectGroup {
 	}
 
 	customUpdate(_dt) {
-		this.fullPerc -= 0.005 * _dt;
+		this.fullPerc -= this.#leakSpeed * _dt;
 		// if (this.angle > Math.PI * 0.5 && this.angle < Math.PI * 1.5) this.fullPerc -= 0.5 * _dt;
 
 		if (this.position.y > 17) return;
-		this.fullPerc += 0.03 * _dt;
+		this.fullPerc += this.#fillSpeed * _dt;
 	}
 }
 

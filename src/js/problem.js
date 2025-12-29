@@ -11,7 +11,9 @@ export class Problem {
 	recordables = [];
 
 	
-	constructor({parameters}) {}
+	constructor({parameters}) {
+		this.parameters = {...this.parameters, ...parameters};
+	}
 	setup(simulation) {}
 }
 
@@ -31,6 +33,10 @@ export class ChaoticWaterWheelProblem extends Problem {
 			size: new Vector2D(2, 2),
 			wallThickness: 0.1
 		}
+	}
+	parameters = {
+		leakSpeed: 0.01,
+		fillSpeed: 0.06,
 	}
 
 	recordables = [
@@ -56,7 +62,9 @@ export class ChaoticWaterWheelProblem extends Problem {
 			let bucket = new TrueBucketObject({
 				position: this.constants.wheel.position.copy().add(offset).add(this.constants.buckets.size.copy().scale(-0.5)), 
 				size: this.constants.buckets.size, 
-				wallThickness: this.constants.buckets.wallThickness
+				wallThickness: this.constants.buckets.wallThickness,
+				leakSpeed: this.parameters.leakSpeed,
+				fillSpeed: this.parameters.fillSpeed,
 			});
 			wheel.connect(bucket, SpringConnector, offset, new Vector2D(this.constants.buckets.size.x / 2, 0));
 			simulation.objects.push(bucket);

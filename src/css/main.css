@@ -24,7 +24,7 @@ body {
 		'header header header'
 		'simulationPanel graphPanel controlPanel';
 	grid-template-rows: var(--headerHeight) auto;
-	grid-template-columns: auto 35% 25%;
+	grid-template-columns: auto 35% 280px;
 	grid-row-gap: 10px;
 	grid-column-gap: 10px;
 }

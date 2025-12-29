@@ -9,6 +9,10 @@ export default class Recorder {
 		this.recordInterval = recordInterval;
 	}
 
+	clear() {
+		this.data = [];
+	}
+
 	#lastRecordTime = 0;
 	record(simulation, problem) {
 		if (simulation.time - this.#lastRecordTime < this.recordInterval) return;

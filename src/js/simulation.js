@@ -20,7 +20,10 @@ export default class Simulation {
 	setSpeed(_speed) {
 		this.#speed  = _speed;
 	}
-
+	
+	clear() {
+		this.objects = [];
+	}
 	
 	#lastUpdate = new Date();
 	updates = 0;

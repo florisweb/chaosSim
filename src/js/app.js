@@ -14,9 +14,15 @@ window.Vector2D = Vector2D;
 const App = new class {
 	simulation;
 	renderer;
+	
+	availableProblems = [];
+	problem;
 
 	constructor() {
 		window.App = this;
+
+		this.availableProblems = [new ChaoticWaterWheelProblem, new BridgeProblem, new DoublePendulumProblem];
+
 		let size = new Vector2D(50, 50);
 
 		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), simulationSize: size});
@@ -24,7 +30,7 @@ const App = new class {
 		this.recorder = new Recorder({recordInterval: 1});
 		this.graphPanel = new GraphPanel();
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
-		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')});
+		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this);
 		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
 
 
@@ -40,8 +46,7 @@ const App = new class {
 			this.recorder.record(this.simulation, this.problem);
 		}
 
-		// this.problem = new ChaoticWaterWheelProblem({})
-		this.loadProblem(new ChaoticWaterWheelProblem());
+		this.loadProblem(this.availableProblems[0]);
 
 
 
@@ -49,6 +54,9 @@ const App = new class {
 	}
 
 	loadProblem(_problem) {
+		this.simulation.clear();
+		this.recorder.clear();
+		this.graphPanel.clear();
 		this.headerPanel.onProblemChange(_problem);
 		this.controlPanel.onProblemChange(_problem);
 		this.problem = _problem;
