@@ -41,6 +41,32 @@ export class BottomWorldBoundDynamic extends Dynamic {
 	}
 }
 
+export class WorldBoundDynamic extends Dynamic {
+	order = 100000;
+	elasticity = 1;
+	applyForce(_dt, _simulation) {
+		let mass = this._object.mass;
+
+
+		let reqStopForce = this._object.velocity.copy().scale(-mass / _dt);
+
+		let force = new Vector2D(0, 0);
+		let padding = 0.1;
+		if (this._object.position.x < padding || this._object.position.x > _simulation.size.x - padding)
+		{
+			force.x += reqStopForce.x * (1 + this.elasticity);
+		}
+		if (this._object.position.y < padding || this._object.position.y > _simulation.size.y - padding)
+		{
+			force.y += reqStopForce.y * (1 + this.elasticity);
+		}
+
+		this._object.applyForce(this._object.relativeCentreOfMass, force)
+	}
+}
+
+
+
 export class TransFrictionDynamic extends Dynamic {
 	scalar = .1;
 	applyForce(_dt, _simulation) {

@@ -1,20 +1,24 @@
 
 .UIPanel.simulationPanel {
 	grid-area: simulationPanel;
+	height: var(--contentHeight);
+	min-width: var(--contentHeight);
+	width: 100%;
+	overflow: hidden;
 }
 
 
 #simulationCanvas {
-	position: relative;
+	position: absolute;
 	left: 0;
 	top: 0;
-	width: 100%;
 	height: 100%;
+	aspect-ratio: 1;
 }
 
 
 .UIPanel.simulationPanel .overlayPanel {
-	position: relative;
+	position: absolute;
 	display: inline-flex;
 	padding: 10px;
 
@@ -30,16 +34,15 @@
 
 .UIPanel.simulationPanel .overlayPanel.controlPanel {
 	position: relative;
-	bottom: calc(50px + 0px);
+	top: calc(100% - 20px);
 	left: 50%;
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, -100%);
 
 	height: 50px;
 }
 
 .UIPanel.simulationPanel .controlPanel > * {
 	white-space: nowrap;
-	/*border: 1px solid blue;*/
 	color: #fff;
 	margin: 0 5px;
 	line-height: 28px;
@@ -76,10 +79,9 @@
 
 
 .UIPanel.simulationPanel .controlLegendPanel {
-	right: 10px;
+	position: relative;
 	float: right;
-	margin-left: auto;
-	top: calc(-100% + 5px);
+	margin: 10px;
 	
 	color: #aaa;
 	font-size: 12px;

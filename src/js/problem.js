@@ -170,7 +170,7 @@ export class PotentialTestProblem extends Problem {
 
 	setup(simulation) {
 		let particleA = new ChargedParticle({position: new Vector2D(10, 20), charge: -1});
-		let particleB = new ChargedParticle({position: new Vector2D(10, 30), charge: -1});
+		let particleB = new ChargedParticle({position: new Vector2D(10, 30), charge: 1});
 		let particleC = new ChargedParticle({position: new Vector2D(19, 24), charge: -1});
 		simulation.objects.push(particleA);
 		simulation.objects.push(particleB);
@@ -198,3 +198,25 @@ export class PotentialTest2Problem extends Problem {
 		}
 	}
 }
+
+
+
+import { ElecDipoleObject } from './object.js';
+export class DipoleProblem extends Problem {
+	name = 'Dipole Test';
+	
+	constructor({parameters} = {}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		let part = new ChargedParticle({position: new Vector2D(10, 10), charge: -1});
+		let dipole1 = new ElecDipoleObject({position: new Vector2D(10, 20), size: new Vector2D(5, 1), angle: Math.PI});
+		let dipole2 = new ElecDipoleObject({position: new Vector2D(10, 15), size: new Vector2D(5, 1)});
+
+		// simulation.objects.push(part);
+		simulation.objects.push(dipole1);
+		simulation.objects.push(dipole2);
+	}
+}
+

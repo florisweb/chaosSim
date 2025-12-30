@@ -1,13 +1,13 @@
+import Panel from './panel.js';
 import { setTextToElement, createElement } from './polyfill.js';
 
-export default class SimulationPanel {
-	HTML = {}
+export default class SimulationPanel extends Panel {
 	#simulation;
 	#app;
 	constructor({panel}, _simulation, _app) {
+		super({panel});
 		this.#app = _app;
 		this.#simulation = _simulation;
-		this.HTML.panel = panel;
 		this.HTML.controlLegend = {
 			panel: panel.querySelector('.controlLegendPanel')
 		}
@@ -18,6 +18,11 @@ export default class SimulationPanel {
 		this.HTML.button.addEventListener('click', () => this.#onSpeedButtonClick());
 		this.#onSpeedButtonClick();
 	}
+
+	onResize() {
+		this.#app.renderer.onResize();
+	}
+
 
 	update(_simulation) {
 		setTextToElement(this.HTML.curTime, Math.round(_simulation.time) + 's');

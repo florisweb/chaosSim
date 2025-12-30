@@ -8,6 +8,9 @@
 	--overlayColor: #212121;
 	--panelBorderRadius: 5px;
 	--headerHeight: 50px;
+	--contentHeight: calc(100vh - var(--headerHeight) - 10px * 3);
+	--controlPanelWidth: 320px;;
+	--graphPanelWidth: calc(100vw - var(--contentHeight) - var(--controlPanelWidth) - 10px * 5);
 }
 
 body {
@@ -21,13 +24,23 @@ body {
 
 	display: grid;
 	grid-template-areas: 
-		'header header header'
-		'simulationPanel graphPanel controlPanel';
+		'header'
+		'content';
 	grid-template-rows: var(--headerHeight) auto;
-	grid-template-columns: auto 35% 280px;
 	grid-row-gap: 10px;
 	grid-column-gap: 10px;
 }
+
+
+.mainPanelHolder {
+	grid-area: content;
+	display: flex;
+	position: relative;
+	gap: 10px;
+	width: calc(100vw - 20px);
+	height: var(--contentHeight);
+}
+
 
 
 .UIPanel {
@@ -37,21 +50,13 @@ body {
 	min-width: 50px;
 	overflow: hidden;
 }
+.UIPanel.hide {
+	display: none;
+}
 .UIPanel > .panelHeader {
 	color: #aaa;
 	font-size: 16px;
 }
-
-
-
-
-.UIPanel.graphPanel {
-	grid-area: graphPanel;
-}
-
-
-
-
 
 
 

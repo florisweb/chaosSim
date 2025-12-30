@@ -1,9 +1,9 @@
+import Panel from './panel.js';
 import { setTextToElement } from './polyfill.js';
 
-export default class HeaderPanel {
-	HTML = {}
+export default class HeaderPanel extends Panel {
 	constructor({panel}, _app) {
-		this.HTML.panel = panel;
+		super({panel});
 		this.HTML.problemName = panel.querySelector('.problemName');
 		this.HTML.problemName.addEventListener('click', () => {
 			let curProblemIndex = _app.availableProblems.findIndex(p => p === _app.problem);

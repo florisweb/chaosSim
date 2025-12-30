@@ -2,7 +2,7 @@ import { Vector2D } from './vector.js';
 
 import { RectangleGeometry, CircleGeometry } from './geometry.js' ;
 import { ArmMaterial, BucketMaterial, WaterMaterial } from './material.js';
-import { GravityDynamic, BottomWorldBoundDynamic, TransFrictionDynamic, RotFrictionDynamic } from './dynamics.js';
+import { GravityDynamic, BottomWorldBoundDynamic, WorldBoundDynamic, TransFrictionDynamic, RotFrictionDynamic } from './dynamics.js';
 
 class Object {
 	geometry;
@@ -418,6 +418,7 @@ export class ChargedParticle extends Object {
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
 		this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
+		this.addDynamic(WorldBoundDynamic);
 	}
 }
 
@@ -427,5 +428,20 @@ export class LJParticle extends Object {
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
 		this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}));
+		this.addDynamic(WorldBoundDynamic);
 	}
 }
+
+export class ElecDipoleObject extends Object {
+	constructor({position, size, angle}) {
+		super(new RectangleGeometry(size), new ArmMaterial);
+		this.position = position;
+		this.angle |= angle;
+		this.centreOfRotation = this.relativeCentreOfMass;
+
+		this.addPotential(new ChargePotential({charge: -1, relPos_objCoords:  new Vector2D(0, size.y/2)}));
+		this.addPotential(new ChargePotential({charge: 1, relPos_objCoords: new Vector2D(size.x, size.y/2)}));
+	}
+}
+
+

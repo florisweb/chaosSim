@@ -11,40 +11,37 @@
 	<div class="UIPanel headerPanel">
 		<div class="problemName item"></div>
 	</div>
-	<div class="UIPanel simulationPanel">
-		<canvas id='simulationCanvas' width="800" height="800"></canvas>
-		<div class="overlayPanel controlPanel">
-			<div class="text time">15s</div>
-			<div class="button startStopButton" speedState='0'></div>
-			<div class="text speed">10x</div>
+	<div class="mainPanelHolder">
+		<div class="UIPanel simulationPanel">
+			<canvas id='simulationCanvas' width="800" height="800"></canvas>
+			<div class="overlayPanel controlPanel">
+				<div class="text time">15s</div>
+				<div class="button startStopButton" speedState='0'></div>
+				<div class="text speed">10x</div>
+			</div>
+			<div class="overlayPanel controlLegendPanel hide"></div>
 		</div>
-		<div class="overlayPanel controlLegendPanel">
-			hey
+		<div class="UIPanel graphPanel hide" id='graphPanel'>
 		</div>
-	</div>
-	<div class="UIPanel graphPanel" id='graphPanel'>
-	</div>
-	<div class="UIPanel controlPanel">
-		<div class="panelHeader">Control Panel</div>
+		<div class="UIPanel controlPanel">
+			<div class="panelHeader">Control Panel</div>
 
-		<div class="section parameters">
-			<div class="sectionHeader">Parameters</div>
-			<div class="sectionContents"></div>
+			<div class="section parameters">
+				<div class="sectionHeader">Parameters</div>
+				<div class="sectionContents"></div>
+			</div>
+			<div class="section constants">
+				<div class="sectionHeader">Constants</div>
+				<div class="sectionContents"></div>
+			</div>	
+
+			<div class="section potentials">
+				<div class="sectionHeader">Potentials</div>
+				<div class="sectionContents"></div>
+
+				<canvas class="potentialCanvas"></canvas>
+			</div>
 		</div>
-		<div class="section constants">
-			<div class="sectionHeader">Constants</div>
-			<div class="sectionContents"></div>
-		</div>	
-
-		<div class="section potentials">
-			<div class="sectionHeader">Potentials</div>
-			<div class="sectionContents"></div>
-
-			<canvas class="potentialCanvas"></canvas>
-		</div>
-
-
-
 	</div>
 	<script src='./main_min.js'></script>
 </body>

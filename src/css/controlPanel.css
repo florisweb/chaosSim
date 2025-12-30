@@ -2,6 +2,8 @@
 .UIPanel.controlPanel {
 	grid-area: controlPanel;
 	padding: 20px;
+	min-width: var(--controlPanelWidth);
+	width: var(--controlPanelWidth);
 }
 
 

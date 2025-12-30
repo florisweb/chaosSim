@@ -1,16 +1,22 @@
+import Panel from './panel.js';
+
 import { Vector2D } from './vector.js';
 import { setTextToElement, createElement } from './polyfill.js';
 import { PotentialRenderer } from './renderer.js';
-export default class ControlPanel {
-	HTML = {}
+
+export default class ControlPanel extends Panel {
 	constructor({panel}) {
-		this.HTML.panel = panel;
+		super(...arguments);
 		this.HTML.constantsContents = panel.querySelector('.section.constants .sectionContents');
 		this.HTML.parameterContents = panel.querySelector('.section.parameters .sectionContents');
 		this.HTML.potentialSection = panel.querySelector('.section.potentials'); 
 		this.HTML.potentialCanvas = panel.querySelector('.section.potentials .potentialCanvas');
 
 		this.potentialRenderer = new PotentialRenderer({canvas: this.HTML.potentialCanvas, viewSize: new Vector2D(5, 5 / 1.5)});
+	}
+
+	onResize() {
+		this.potentialRenderer.onResize();
 	}
 
 	onProblemChange(_problem, _simulation) {

@@ -52,7 +52,7 @@ export class ChargePotential extends Potential {
 		}
 
 		// Todo: true equation
-		let forceMagnitude = -(dist**-2) * this.charge * _otherPot.charge; // * Math.sin(delta.angle * 5);
+		let forceMagnitude = (dist**-2) * this.charge * _otherPot.charge; // * Math.sin(delta.angle * 5);
 		let force = delta.copy()
 		force.length = -forceMagnitude; // Force is -du/dx
 		return force;

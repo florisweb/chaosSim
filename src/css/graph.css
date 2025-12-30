@@ -1,3 +1,15 @@
+
+
+
+.UIPanel.graphPanel {
+	width: auto;
+	width: var(--graphPanelWidth);;
+	width: 100%;
+}
+
+
+
+
 .plot-container.plotly {
 	--textColor: #777;
 	--axisLineColor: #333;

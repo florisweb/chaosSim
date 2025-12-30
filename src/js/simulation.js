@@ -77,11 +77,12 @@ export default class Simulation {
 			obj.applyNetForceConsequences(_dt);
 		}
 		
+
+		// Calc forces from dynamics
 		for (let obj of this.objects)
 		{
 			obj.calcForces(_dt, this);
 		}
-
 
 		// Calculate potentials
 		for (let pot of this.potentialTypes)
@@ -112,9 +113,7 @@ export default class Simulation {
 						}
 					}
 				}
-
 			} else {
-
 				for (let i = 0; i < this.objects.length; i++)
 				{
 					for (let j = 0; j < this.objects.length; j++)
