@@ -59,8 +59,8 @@
 	text-align: center;
 }
 
-.UIPanel.simulationPanel .controlPanel .startStopButton {
-	width: 40px;
+.UIPanel.simulationPanel .controlPanel .button {
+	width: 25px;
 	text-align: center;
 	font-size: 30px;
 	line-height: 25px;
@@ -68,17 +68,21 @@
 }
 
 
-.UIPanel.simulationPanel .controlPanel .startStopButton[speedState='0']:after {
+.UIPanel.simulationPanel .controlPanel .startStop[speedState='0']:after {
 	content: '⏵'
 }
-.UIPanel.simulationPanel .controlPanel .startStopButton:after {
+.UIPanel.simulationPanel .controlPanel .startStop:after {
 	content: '⏭'
 }
-.UIPanel.simulationPanel .controlPanel .startStopButton[speedState='100']:after {
+.UIPanel.simulationPanel .controlPanel .startStop[speedState='100']:after {
 	content: '⏸'
 }
 
 
+
+.UIPanel.simulationPanel .controlPanel .button.refresh {
+	line-height: 20px;
+}
 
 
 .UIPanel.simulationPanel .controlLegendPanel {

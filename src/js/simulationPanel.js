@@ -12,10 +12,12 @@ export default class SimulationPanel extends Panel {
 			panel: panel.querySelector('.controlLegendPanel')
 		}
 		this.HTML.curTime = panel.querySelector('.text.time')
-		this.HTML.button = panel.querySelector('.button');
+		this.HTML.startStopButton = panel.querySelector('.button.startStop');
+		this.HTML.refreshButton = panel.querySelector('.button.refresh');
 		this.HTML.speedIndicator = panel.querySelector('.text.speed');
 
-		this.HTML.button.addEventListener('click', () => this.#onSpeedButtonClick());
+		this.HTML.startStopButton.addEventListener('click', () => this.#onSpeedButtonClick());
+		this.HTML.refreshButton.addEventListener('click', () => _app.loadProblem(_app.problem));
 		this.#onSpeedButtonClick();
 	}
 
@@ -32,7 +34,7 @@ export default class SimulationPanel extends Panel {
 	}
 
 	#onSpeedButtonClick() {
-		let curSpeed = parseInt(this.HTML.button.getAttribute('speedState'));
+		let curSpeed = parseInt(this.HTML.startStopButton.getAttribute('speedState'));
 		let newSpeed = 0;
 		switch (curSpeed)
 		{
@@ -45,7 +47,7 @@ export default class SimulationPanel extends Panel {
 			case 100: newSpeed = 0; break;
 		}
 
-		this.HTML.button.setAttribute('speedState', newSpeed);
+		this.HTML.startStopButton.setAttribute('speedState', newSpeed);
 		setTextToElement(this.HTML.speedIndicator, newSpeed + 'x');
 		this.#simulation.setSpeed(newSpeed);
 	}
