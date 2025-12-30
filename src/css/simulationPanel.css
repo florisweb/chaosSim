@@ -10,10 +10,13 @@
 
 #simulationCanvas {
 	position: absolute;
-	left: 0;
-	top: 0;
-	height: 100%;
+	left: 1px;
+	top: 1px;
 	aspect-ratio: 1;
+	width: calc(var(--contentHeight) + 1px);
+	
+	border-radius: var(--panelBorderRadius);
+	overflow: hidden;
 }
 
 
