@@ -9,6 +9,9 @@
 	position: relative;
 	margin-top: 15px;
 }
+.UIPanel.controlPanel .section.hide {
+	display: none;
+}
 
 .UIPanel.controlPanel .section .sectionHeader {
 	color: #777;
@@ -54,8 +57,8 @@
 
 
 .UIPanel.controlPanel .section.potentials .potentialCanvas {
+	margin-top: 5px;
 	width: 100%;
 	aspect-ratio: 1.5;
 	border-radius: var(--panelBorderRadius);
-
 }

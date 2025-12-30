@@ -23,8 +23,11 @@
 
 	border: 1px solid #373737;
 	box-shadow: 10px 10xp 10px 10px rgba(255, 255, 255, 0.1);
-
 }
+.UIPanel.simulationPanel .overlayPanel.hide {
+	display: none;
+}
+
 .UIPanel.simulationPanel .overlayPanel.controlPanel {
 	position: relative;
 	bottom: calc(50px + 0px);

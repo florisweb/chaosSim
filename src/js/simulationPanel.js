@@ -47,6 +47,8 @@ export default class SimulationPanel {
 
 	#updateControlLegend(_simulation) {
 		this.HTML.controlLegend.panel.innerHTML = '';
+		this.HTML.controlLegend.panel.classList.toggle('hide', _simulation.potentialTypes.length === 0);
+
 		for (let potType of _simulation.potentialTypes)
 		{
 			let el = createElement('div', 'potType');

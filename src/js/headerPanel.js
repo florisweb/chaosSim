@@ -6,9 +6,7 @@ export default class HeaderPanel {
 		this.HTML.panel = panel;
 		this.HTML.problemName = panel.querySelector('.problemName');
 		this.HTML.problemName.addEventListener('click', () => {
-			console.log('click');
 			let curProblemIndex = _app.availableProblems.findIndex(p => p === _app.problem);
-
 			_app.loadProblem(_app.availableProblems[curProblemIndex + 1] || _app.availableProblems[0]);
 		})
 

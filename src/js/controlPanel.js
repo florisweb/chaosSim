@@ -7,6 +7,7 @@ export default class ControlPanel {
 		this.HTML.panel = panel;
 		this.HTML.constantsContents = panel.querySelector('.section.constants .sectionContents');
 		this.HTML.parameterContents = panel.querySelector('.section.parameters .sectionContents');
+		this.HTML.potentialSection = panel.querySelector('.section.potentials'); 
 		this.HTML.potentialCanvas = panel.querySelector('.section.potentials .potentialCanvas');
 
 		this.potentialRenderer = new PotentialRenderer({canvas: this.HTML.potentialCanvas, viewSize: new Vector2D(5, 5 / 1.5)});
@@ -23,7 +24,7 @@ export default class ControlPanel {
 
 
 		let potentialTypes = _simulation.potentialTypes;
-		if (_simulation.objects[0]) this.renderPotential(_simulation.objects[0].potentials[0]); // TODO
+		this.renderPotential(_simulation.objects[0].potentials[0]); // TODO
 	}
 
 	#renderObject(_obj) {
@@ -55,6 +56,7 @@ export default class ControlPanel {
 	}
 
 	renderPotential(_pot) {
-		this.potentialRenderer.draw(_pot);
+		this.HTML.potentialSection.classList.toggle('hide', !_pot);
+		if (_pot) this.potentialRenderer.draw(_pot);
 	}
 }

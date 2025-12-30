@@ -45,7 +45,7 @@ export default class Simulation {
 
 			for (let type of types) potTypes.add(type);
 		}
-		return potTypes.keys();
+		return [...potTypes.keys()];
 	}
 
 
