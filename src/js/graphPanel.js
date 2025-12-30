@@ -49,7 +49,19 @@ export default class GraphPanel extends Panel {
 		}
 
 		var layout = {
-		    showlegend: true
+		    showlegend: true,
+		    legend: {
+		    	orientation: 'h',
+		    	xanchor: "center",
+		    	x: 0.5, 
+		    	y: 1
+		    },
+		    margin: {
+		    	b: 40,
+		    	l: 60,
+		    	r: 10,
+		    	t: 50,
+		    }
 		};
 		Plotly.newPlot(this.HTML.panel.id, this.#data, layout, {displayModeBar: false, displaylogo: false});
 	}

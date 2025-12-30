@@ -20,10 +20,14 @@
 .plot-container.plotly .main-svg {
 	background: none !important;
 }
+.plot-container.plotly .legend {
+	transform: translateY(0px);
+}
 
 .plot-container.plotly .legend .bg {
 	fill: none !important;
 }
+
 .plot-container.plotly text {
 	fill: var(--textColor) !important;
 }
