@@ -8,7 +8,7 @@ class Object {
 	geometry;
 	material;
 	dynamics = [];
-	constraints = [];
+	potentials = [];
 
 	position = new Vector2D(0, 0);
 	velocity = new Vector2D(0, 0);
@@ -18,7 +18,7 @@ class Object {
 	netForce = new Vector2D(0, 0);
 	netTorque = 0;
 
-	centreOfRotation = new Vector2D(0, 0); // Position relative to position, in WORLD coords
+	centreOfRotation = new Vector2D(0, 0);
 
 	get mass() {
 		return this.geometry.area * this.material.density;
@@ -39,6 +39,15 @@ class Object {
 		let conn = new _connectorClass(this, _other, _relConnPosSelf, _relConnPosOther);
 		this.dynamics.push(conn.dynamicA);
 		_other.dynamics.push(conn.dynamicB);
+	}
+
+	addPotential(_pot, _potPos = this.centreOfRotation) {
+		let pot = _pot;
+		if (typeof _pot === 'function')
+		{
+			pot = new _pot(_potPos);
+		}
+		this.potentials.push(pot);
 	}
 
 
@@ -395,4 +404,21 @@ export class PendulumArm extends Object {
 		this.addDynamic(RotFrictionDynamic);
 		if (fixed) this.addRotationPin(new Vector2D(0, size.y/2));
 	}
+}
+
+
+
+
+
+import { ChargePotential } from './potentials.js';
+
+export class ChargedParticle extends Object {
+
+	constructor({position, charge}) {
+		const radius = 0.5;
+		super(new CircleGeometry(radius), new ArmMaterial);
+		this.position = position;
+		this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
+	}
+
 }

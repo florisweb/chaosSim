@@ -56,6 +56,27 @@ export default class Simulation {
 		{
 			obj.calcForces(_dt, this);
 		}
+
+
+		// Calculate potentials
+		for (let i = 0; i < this.objects.length; i++)
+		{
+			for (let j = 0; j < this.objects.length; j++)
+			{
+				if (i === j) continue;
+				for (let potI of this.objects[i].potentials)
+				{
+					for (let potJ of this.objects[j].potentials)
+					{
+						if (potI.type != potJ.type) continue;
+						let otherPotPos = this.objects[j].position.copy().add(potJ.relPos);
+						let force = potI.calcForce(this.objects[i].worldCoordToObjectCoord(otherPotPos), potJ);
+						this.objects[i].applyForce(potI.relPos, force);
+					}
+				}
+			}
+		}
+
 		this.onUpdate();
 	}
 
