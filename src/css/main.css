@@ -9,7 +9,7 @@
 	--panelBorderRadius: 5px;
 	--headerHeight: 50px;
 	--contentHeight: calc(100vh - var(--headerHeight) - 10px * 3);
-	--controlPanelWidth: 320px;;
+	--controlPanelWidth: 290px;
 	--graphPanelWidth: calc(100vw - var(--contentHeight) - var(--controlPanelWidth) - 10px * 5);
 }
 

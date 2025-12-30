@@ -21,6 +21,7 @@ export default class SimulationPanel extends Panel {
 		this.HTML.refreshButton.addEventListener('click', () => _app.loadProblem(_app.problem));
 		this.HTML.speedSelect.addEventListener('change', () => this.#onSpeedChange());
 		this.#onStartStopButtonClick();
+		this.#onSpeedChange();
 	}
 
 	onResize() {

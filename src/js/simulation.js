@@ -11,7 +11,7 @@ export default class Simulation {
 	config = {
 		maxDt: 0.02
 	}
-	#speed = 1;
+	#speed = 0;
 	
 
 	constructor({size}) {

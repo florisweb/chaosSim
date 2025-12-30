@@ -27,7 +27,7 @@ const App = new class {
 	constructor() {
 		window.App = this;
 
-		this.availableProblems = [new DipoleProblem, new PotentialTestProblem, new PotentialTest2Problem, new ChaoticWaterWheelProblem, new BridgeProblem, new DoublePendulumProblem];
+		this.availableProblems = [new PotentialTest2Problem, new DipoleProblem, new PotentialTestProblem, new ChaoticWaterWheelProblem, new BridgeProblem, new DoublePendulumProblem];
 
 		let size = new Vector2D(50, 50);
 
