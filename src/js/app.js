@@ -18,6 +18,12 @@ const App = new class {
 	availableProblems = [];
 	problem;
 
+	config = {
+		renderer: {
+			renderPotType: ''
+		}
+	}
+
 	constructor() {
 		window.App = this;
 
@@ -29,7 +35,7 @@ const App = new class {
 		this.simulation = new Simulation({size: size});
 		this.recorder = new Recorder({recordInterval: 2});
 		this.graphPanel = new GraphPanel();
-		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation);
+		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation, this);
 		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this);
 		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
 
@@ -61,14 +67,12 @@ const App = new class {
 		this.simulation.clear();
 		this.recorder.clear();
 		this.graphPanel.clear();
-		this.headerPanel.onProblemChange(_problem);
-		this.controlPanel.onProblemChange(_problem);
 		this.problem = _problem;
 		this.problem.setup(this.simulation);
-
-
-
-		this.controlPanel.renderPotential(this.simulation.objects[0].potentials[0]); // FIXME
+		this.simulation.setup();
+		this.headerPanel.onProblemChange(_problem);
+		this.controlPanel.onProblemChange(_problem, this.simulation);
+		this.simulationPanel.onProblemChange(_problem, this.simulation);
 	}
 
 	async setup() {
@@ -77,7 +81,7 @@ const App = new class {
 	}
 
 	draw() {
-		this.renderer.draw(this.simulation);
+		this.renderer.draw(this.simulation, this.config.renderer);
 		requestAnimationFrame(() => this.draw());
 	}
 

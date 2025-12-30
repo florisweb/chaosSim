@@ -69,7 +69,7 @@ export class LJPotential extends Potential {
 	constructor({relPos_objCoords, sigma}) {
 		super({relPos_objCoords});
 		this.sigma = sigma || 1;
-		this.maxDist = 4 * sigma;
+		this.maxDist = 3 * sigma;
 	}
 
 	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge

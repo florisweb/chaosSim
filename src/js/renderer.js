@@ -56,10 +56,9 @@ export default class Renderer extends BaseRenderer {
 		super(...arguments);
 	}
 	
-	draw(_simulation) {
+	draw(_simulation, _renderConfig) {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		// this.drawPotentialsOfType(_simulation.objects, 'LJPot');
-		// this.drawPotentialsOfType(_simulation.objects, 'ChargePot');
+		if (_renderConfig.renderPotType) this.drawPotentialsOfType(_simulation.objects, _renderConfig.renderPotType);
 
 		for (let object of _simulation.objects)
 		{

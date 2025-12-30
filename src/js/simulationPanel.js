@@ -1,11 +1,16 @@
-import { setTextToElement } from './polyfill.js';
+import { setTextToElement, createElement } from './polyfill.js';
 
 export default class SimulationPanel {
 	HTML = {}
 	#simulation;
-	constructor({panel}, _simulation) {
+	#app;
+	constructor({panel}, _simulation, _app) {
+		this.#app = _app;
 		this.#simulation = _simulation;
 		this.HTML.panel = panel;
+		this.HTML.controlLegend = {
+			panel: panel.querySelector('.controlLegendPanel')
+		}
 		this.HTML.curTime = panel.querySelector('.text.time')
 		this.HTML.button = panel.querySelector('.button');
 		this.HTML.speedIndicator = panel.querySelector('.text.speed');
@@ -16,8 +21,11 @@ export default class SimulationPanel {
 
 	update(_simulation) {
 		setTextToElement(this.HTML.curTime, Math.round(_simulation.time) + 's');
-		
 	}
+	onProblemChange(_problem, _simulation) {
+		this.#updateControlLegend(_simulation);
+	}
+
 	#onSpeedButtonClick() {
 		let curSpeed = parseInt(this.HTML.button.getAttribute('speedState'));
 		let newSpeed = 0;
@@ -35,5 +43,23 @@ export default class SimulationPanel {
 		this.HTML.button.setAttribute('speedState', newSpeed);
 		setTextToElement(this.HTML.speedIndicator, newSpeed + 'x');
 		this.#simulation.setSpeed(newSpeed);
+	}
+
+	#updateControlLegend(_simulation) {
+		this.HTML.controlLegend.panel.innerHTML = '';
+		for (let potType of _simulation.potentialTypes)
+		{
+			let el = createElement('div', 'potType');
+			setTextToElement(el, potType.type);
+			this.HTML.controlLegend.panel.append(el);
+			el.addEventListener('click', () => {
+				if (this.#app.config.renderer.renderPotType === potType.type) 
+				{
+					this.#app.config.renderer.renderPotType = '';
+				} else {
+					this.#app.config.renderer.renderPotType = potType.type;
+				}
+			})
+		}
 	}
 }

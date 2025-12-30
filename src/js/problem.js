@@ -10,7 +10,6 @@ export class Problem {
 	parameters = {}
 	recordables = [];
 
-	
 	constructor({parameters}) {
 		this.parameters = {...this.parameters, ...parameters};
 	}

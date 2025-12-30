@@ -12,7 +12,7 @@ export default class ControlPanel {
 		this.potentialRenderer = new PotentialRenderer({canvas: this.HTML.potentialCanvas, viewSize: new Vector2D(5, 5 / 1.5)});
 	}
 
-	onProblemChange(_problem) {
+	onProblemChange(_problem, _simulation) {
 		this.HTML.constantsContents.innerHTML = '';
 		let constObjects = this.#renderObject(_problem.constants);
 		for (let obj of constObjects) this.HTML.constantsContents.append(obj);
@@ -20,6 +20,10 @@ export default class ControlPanel {
 		this.HTML.parameterContents.innerHTML = '';
 		let paramObjects = this.#renderObject(_problem.parameters);
 		for (let obj of paramObjects) this.HTML.parameterContents.append(obj);
+
+
+		let potentialTypes = _simulation.potentialTypes;
+		if (_simulation.objects[0]) this.renderPotential(_simulation.objects[0].potentials[0]); // TODO
 	}
 
 	#renderObject(_obj) {

@@ -27,6 +27,28 @@ export default class Simulation {
 		this.updates = 0;
 		this.time = 0;
 	}
+
+	potentialTypes = [];
+	setup() {
+		this.potentialTypes = this.#getPotentialTypes(this.objects);
+	}
+
+	#getPotentialTypes(_objects) {
+		let potTypes = new Set();
+		for (let obj of _objects)
+		{
+			let types = [];
+			if (obj.isObjectGroup)
+			{
+				types = this.#getPotentialTypes(obj.objects);
+			} else types = obj.potentials.map(p => p.constructor);
+
+			for (let type of types) potTypes.add(type);
+		}
+		return potTypes.keys();
+	}
+
+
 	
 	#lastUpdate = new Date();
 	updates = 0;
@@ -62,7 +84,7 @@ export default class Simulation {
 
 
 		// Calculate potentials
-		for (let pot of potentialTypes)
+		for (let pot of this.potentialTypes)
 		{
 			if (pot.isSymmetric)
 			{
