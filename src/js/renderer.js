@@ -2,22 +2,21 @@ import { Vector3D, Vector2D } from './vector.js';
 import App from './app.js';
 import { GPU } from 'gpu.js';
 
-let ctx;
 
-export default class Renderer {
-	renderDebugInfo = false;
+class BaseRenderer {
 	canvas;
 
 	size = new Vector2D(100, 100);
+	viewSize = new Vector2D(0, 0);
 	scalar = new Vector2D(1, 1);
+	ctx;
 
-	curObject;
-
-	constructor({canvas, simulationSize}) {
+	constructor({canvas, viewSize}) {
 		this.canvas = canvas;
-		ctx = this.canvas.getContext('2d');
-		ctx.constructor.prototype.circle = function(x, y, size) {
-		    if (size < 0) return;
+		this.viewSize = viewSize;
+		this.ctx = this.canvas.getContext('2d');
+		this.ctx.constructor.prototype.circle = function(x, y, size) {
+		    if (size <= 0) return;
 		    this.beginPath();
 		    this.ellipse(
 		      x, 
@@ -32,22 +31,33 @@ export default class Renderer {
 		}
 
 
-		window.onresize = () => {
-			const pxScalar = 2;
-			this.canvas.width = this.canvas.offsetWidth * pxScalar;
-			this.canvas.height = this.canvas.offsetHeight * pxScalar;
-			this.size = new Vector2D(this.canvas.width, this.canvas.height);
+		window.onresize = () => this.onResize();
+		this.onResize();
+	}
+	onResize() {
+		const pxScalar = 2;
+		this.canvas.width = this.canvas.offsetWidth * pxScalar;
+		this.canvas.height = this.canvas.offsetHeight * pxScalar;
+		this.size = new Vector2D(this.canvas.width, this.canvas.height);
 
-			this.scalar = new Vector2D(
-				this.size.y / simulationSize.y, // [use same scalar as x for non-squased graph]  // this.size.x / simulationSize.x
-				this.size.y / simulationSize.y // [use same scalar as x for non-squased graph]  // 
-			);
-		}
-		window.onresize();
+		this.scalar = new Vector2D(
+			this.size.y / this.viewSize.y, // [use same scalar as x for non-squased graph]  // this.size.x / simulationSize.x
+			this.size.y / this.viewSize.y // [use same scalar as x for non-squased graph]  // 
+		);
+	}
+	
+	draw() {}
+}
+
+export default class Renderer extends BaseRenderer {
+	curObject;
+
+	constructor({canvas, viewSize}) {
+		super(...arguments);
 	}
 	
 	draw(_simulation) {
-		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		for (let object of _simulation.objects)
 		{
@@ -60,10 +70,10 @@ export default class Renderer {
 		if (_object.isObjectGroup) return this.drawObjectGroup(_object);
 
 		this.curObject = _object;
-		ctx.fillStyle = _object.material.getFillStyle();
+		this.ctx.fillStyle = _object.material.getFillStyle();
 
-		_object.geometry.drawShape(ctx, this);
-		ctx.fill();
+		_object.geometry.drawShape(this.ctx, this);
+		this.ctx.fill();
 		
 		// this.drawVector(_object.objectCoordToWorldCoord(_object.centreOfRotation), new Vector2D(0, -1), '#0af');
 		// this.drawVector(_object.objectCoordToWorldCoord(_object.geometry.relativeCentreOfMass), new Vector2D(0, -1), '#0fa');
@@ -83,24 +93,24 @@ export default class Renderer {
 
 	lineTo(_pos) {
 		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		ctx.lineTo(pxCoords.x, pxCoords.y)
+		this.ctx.lineTo(pxCoords.x, pxCoords.y)
 	}
 	moveTo(_pos) {
 		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		ctx.moveTo(pxCoords.x, pxCoords.y)
+		this.ctx.moveTo(pxCoords.x, pxCoords.y)
 	}
 
 	drawCircle(_pos, _rad) {
 		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		const gradient = ctx.createConicGradient(-this.curObject.angle, pxCoords.x, pxCoords.y);
+		const gradient = this.ctx.createConicGradient(-this.curObject.angle, pxCoords.x, pxCoords.y);
 
 		// Add five color stops
-		gradient.addColorStop(0, ctx.fillStyle);
-		gradient.addColorStop(1, ctx.fillStyle + 'd0');
+		gradient.addColorStop(0, this.ctx.fillStyle);
+		gradient.addColorStop(1, this.ctx.fillStyle + 'd0');
 
-		ctx.fillStyle = gradient;
-		ctx.beginPath();
-	    ctx.ellipse(
+		this.ctx.fillStyle = gradient;
+		this.ctx.beginPath();
+	    this.ctx.ellipse(
 	      pxCoords.x, 
 	      pxCoords.y, 
 	      _rad * this.scalar.x,
@@ -109,7 +119,7 @@ export default class Renderer {
 	      0,
 	      2 * Math.PI
 	    );
-	    ctx.closePath();
+	    this.ctx.closePath();
 	}	
 
 
@@ -119,18 +129,56 @@ export default class Renderer {
 		this.drawVectorTo(_start.copy().multiply(this.scalar), end.multiply(this.scalar), _color);
 	}
 	drawVectorTo(_start, _end, _color = '#f00') {
-		ctx.strokeStyle = _color;
-		ctx.beginPath();
-	    ctx.moveTo(_start.x, _start.y);
-	    ctx.lineTo(_end.x, _end.y);
-	    ctx.closePath();
-	    ctx.stroke();
+		this.ctx.strokeStyle = _color;
+		this.ctx.beginPath();
+	    this.ctx.moveTo(_start.x, _start.y);
+	    this.ctx.lineTo(_end.x, _end.y);
+	    this.ctx.closePath();
+	    this.ctx.stroke();
 	}
 }
 
 
 
 
-function wait(_ms) {
-	return new Promise((resolve) => setTimeout(resolve, _ms));
+export class PotentialRenderer extends BaseRenderer {
+	constructor({canvas, viewSize}) {
+		super(...arguments);
+	}
+
+	draw(_potential) {
+		let step = 0.05;
+		let objectPos = this.viewSize.copy().scale(0.5);
+		for (let x = 0; x < this.viewSize.x; x += step)
+		{
+			for (let y = 0; y < this.viewSize.y; y += step)
+			{
+
+				let pos = new Vector2D(x, y);
+				let objCoordPos = objectPos.difference(pos);
+
+				let pot = _potential.calcPotential(objCoordPos);
+				let normPot = pot / 2;
+
+				let pxPos = pos.copy().multiply(this.scalar);
+
+				let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
+				let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
+
+				this.ctx.fillStyle = `rgb(${r}, 0, ${b})`;
+				this.ctx.beginPath();
+				this.ctx.fillRect(pxPos.x, pxPos.y, this.scalar.x * step, this.scalar.y * step);
+				this.ctx.closePath();
+				this.ctx.fill();
+			}
+
+		}
+
+
+
+
+	}
 }
+
+
+

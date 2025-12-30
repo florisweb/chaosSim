@@ -25,7 +25,7 @@ const App = new class {
 
 		let size = new Vector2D(50, 50);
 
-		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), simulationSize: size});
+		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), viewSize: size});
 		this.simulation = new Simulation({size: size});
 		this.recorder = new Recorder({recordInterval: 2});
 		this.graphPanel = new GraphPanel();
@@ -65,6 +65,10 @@ const App = new class {
 		this.controlPanel.onProblemChange(_problem);
 		this.problem = _problem;
 		this.problem.setup(this.simulation);
+
+
+
+		this.controlPanel.renderPotential(this.simulation.objects[0].potentials[0]); // FIXME
 	}
 
 	async setup() {

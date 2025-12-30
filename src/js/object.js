@@ -410,15 +410,14 @@ export class PendulumArm extends Object {
 
 
 
-import { ChargePotential } from './potentials.js';
+import { ChargePotential, LJPotential } from './potentials.js';
 
 export class ChargedParticle extends Object {
-
 	constructor({position, charge}) {
 		const radius = 0.5;
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
-		this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
+		// this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
+		this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: 1}));
 	}
-
 }

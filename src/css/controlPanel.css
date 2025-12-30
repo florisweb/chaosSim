@@ -49,3 +49,13 @@
 	margin-left: auto;
 }
 
+
+
+
+
+.UIPanel.controlPanel .section.potentials .potentialCanvas {
+	width: 100%;
+	aspect-ratio: 1.5;
+	border-radius: var(--panelBorderRadius);
+
+}
