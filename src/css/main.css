@@ -39,6 +39,8 @@ body {
 	gap: 10px;
 	width: calc(100vw - 20px);
 	height: var(--contentHeight);
+	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 

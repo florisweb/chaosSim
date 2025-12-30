@@ -14,11 +14,13 @@ export default class SimulationPanel extends Panel {
 		this.HTML.curTime = panel.querySelector('.text.time')
 		this.HTML.startStopButton = panel.querySelector('.button.startStop');
 		this.HTML.refreshButton = panel.querySelector('.button.refresh');
-		this.HTML.speedIndicator = panel.querySelector('.text.speed');
+		this.HTML.speedIndicator = panel.querySelector('.text.speed .valueHolder');
+		this.HTML.speedSelect = panel.querySelector('.text.speed .speedSelect');
 
-		this.HTML.startStopButton.addEventListener('click', () => this.#onSpeedButtonClick());
+		this.HTML.startStopButton.addEventListener('click', () => this.#onStartStopButtonClick());
 		this.HTML.refreshButton.addEventListener('click', () => _app.loadProblem(_app.problem));
-		this.#onSpeedButtonClick();
+		this.HTML.speedSelect.addEventListener('change', () => this.#onSpeedChange());
+		this.#onStartStopButtonClick();
 	}
 
 	onResize() {
@@ -33,22 +35,21 @@ export default class SimulationPanel extends Panel {
 		this.#updateControlLegend(_simulation);
 	}
 
-	#onSpeedButtonClick() {
-		let curSpeed = parseInt(this.HTML.startStopButton.getAttribute('speedState'));
-		let newSpeed = 0;
-		switch (curSpeed)
+	#onStartStopButtonClick() {
+		if (this.#simulation.running)
 		{
-			case 0: newSpeed = 1; break;
-			case 1: newSpeed = 2; break;
-			case 2: newSpeed = 5; break;
-			case 5: newSpeed = 10; break;
-			case 10: newSpeed = 50; break;
-			case 50: newSpeed = 100; break;
-			case 100: newSpeed = 0; break;
+			this.#simulation.setSpeed(0);
+			this.HTML.startStopButton.setAttribute('runState', '0');
+		} else {
+			this.#simulation.setSpeed(parseInt(this.HTML.speedSelect.value));
+			this.HTML.startStopButton.setAttribute('runState', '1');
 		}
+	}
 
-		this.HTML.startStopButton.setAttribute('speedState', newSpeed);
+	#onSpeedChange() {
+		let newSpeed = parseInt(this.HTML.speedSelect.value);
 		setTextToElement(this.HTML.speedIndicator, newSpeed + 'x');
+		if (!this.#simulation.running) return;
 		this.#simulation.setSpeed(newSpeed);
 	}
 

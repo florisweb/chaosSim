@@ -53,10 +53,17 @@
 
 .UIPanel.simulationPanel .controlPanel .text {
 	color: #aaa;
-}
-.UIPanel.simulationPanel .controlPanel .text {
 	min-width: 40px;
 	text-align: center;
+}
+
+.UIPanel.simulationPanel .text.speed .speedSelect {
+	position: relative;
+	border: 1px solid red;
+	top: -40px;
+	height: 50px;
+	opacity: 0;
+	margin-right: -20px;
 }
 
 .UIPanel.simulationPanel .controlPanel .button {
@@ -68,13 +75,10 @@
 }
 
 
-.UIPanel.simulationPanel .controlPanel .startStop[speedState='0']:after {
+.UIPanel.simulationPanel .controlPanel .startStop[runState='0']:after {
 	content: '⏵'
 }
-.UIPanel.simulationPanel .controlPanel .startStop:after {
-	content: '⏭'
-}
-.UIPanel.simulationPanel .controlPanel .startStop[speedState='100']:after {
+.UIPanel.simulationPanel .controlPanel .startStop[runState='1']:after {
 	content: '⏸'
 }
 
@@ -82,6 +86,7 @@
 
 .UIPanel.simulationPanel .controlPanel .button.refresh {
 	line-height: 20px;
+	font-size: 35px;
 }
 
 

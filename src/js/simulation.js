@@ -21,6 +21,9 @@ export default class Simulation {
 	setSpeed(_speed) {
 		this.#speed  = _speed;
 	}
+	get running() {
+		return this.#speed > 0;
+	}
 	
 	clear() {
 		this.objects = [];
