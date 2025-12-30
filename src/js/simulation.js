@@ -1,6 +1,7 @@
 import { Vector2D, Vector3D } from './vector.js';
 import App from './app.js';
 // import { GPU } from 'gpu.js';
+import { potentialTypes } from './potentials.js';
 
 
 export default class Simulation {
@@ -23,6 +24,8 @@ export default class Simulation {
 	
 	clear() {
 		this.objects = [];
+		this.updates = 0;
+		this.time = 0;
 	}
 	
 	#lastUpdate = new Date();
@@ -59,23 +62,64 @@ export default class Simulation {
 
 
 		// Calculate potentials
-		for (let i = 0; i < this.objects.length; i++)
+		for (let pot of potentialTypes)
 		{
-			for (let j = 0; j < this.objects.length; j++)
+			if (pot.isSymmetric)
 			{
-				if (i === j) continue;
-				for (let potI of this.objects[i].potentials)
+				for (let i = 0; i < this.objects.length; i++)
 				{
-					for (let potJ of this.objects[j].potentials)
+					for (let j = i + 1; j < this.objects.length; j++)
 					{
-						if (potI.type != potJ.type) continue;
-						let otherPotPos = this.objects[j].position.copy().add(potJ.relPos);
-						let force = potI.calcForce(this.objects[i].worldCoordToObjectCoord(otherPotPos), potJ);
-						this.objects[i].applyForce(potI.relPos, force);
+						for (let potI of this.objects[i].potentials)
+						{
+							if (potI.type != pot.type) continue;
+							for (let potJ of this.objects[j].potentials)
+							{
+								if (potJ.type != pot.type) continue;
+
+								let otherPotPos = this.objects[j].position.copy().add(potJ.relPos);
+								let objCoords = this.objects[i].worldCoordToObjectCoord(otherPotPos);
+								let delta = potI.relPos.difference(objCoords);
+								let dist = delta.length;
+								if (dist > potI.maxDist && dist > potJ.maxDist) continue; // Neglicable
+
+								let force = potI.calcForce(objCoords, potJ, delta, dist);
+								this.objects[i].applyForce(potI.relPos, force);
+								this.objects[j].applyForce(potJ.relPos, force.copy().scale(-1));
+							}
+						}
+					}
+				}
+
+			} else {
+
+				for (let i = 0; i < this.objects.length; i++)
+				{
+					for (let j = 0; j < this.objects.length; j++)
+					{
+						if (i === j) continue;
+						for (let potI of this.objects[i].potentials)
+						{
+							if (potI.type != pot.type) continue;
+							for (let potJ of this.objects[j].potentials)
+							{
+								if (potJ.type != pot.type) continue;
+
+								let otherPotPos = this.objects[j].position.copy().add(potJ.relPos);
+								let objCoords = this.objects[i].worldCoordToObjectCoord(otherPotPos);
+								let delta = potI.relPos.difference(objCoords);
+								let dist = delta.length;
+								if (dist > potI.maxDist && dist > potJ.maxDist) continue; // Neglicable
+
+								let force = potI.calcForce(objCoords, potJ, delta, dist);
+								this.objects[i].applyForce(potI.relPos, force);
+							}
+						}
 					}
 				}
 			}
 		}
+
 
 		this.onUpdate();
 	}

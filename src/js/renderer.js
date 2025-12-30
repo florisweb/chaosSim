@@ -58,6 +58,8 @@ export default class Renderer extends BaseRenderer {
 	
 	draw(_simulation) {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		// this.drawPotentialsOfType(_simulation.objects, 'LJPot');
+		// this.drawPotentialsOfType(_simulation.objects, 'ChargePot');
 
 		for (let object of _simulation.objects)
 		{
@@ -136,6 +138,47 @@ export default class Renderer extends BaseRenderer {
 	    this.ctx.closePath();
 	    this.ctx.stroke();
 	}
+
+
+
+	drawPotentialsOfType(_objects, _potType) {
+		let step = 0.5;
+		let objectPos = this.viewSize.copy().scale(0.5);
+		for (let x = 0; x < this.viewSize.x; x += step)
+		{
+			for (let y = 0; y < this.viewSize.y; y += step)
+			{
+				let curPos = new Vector2D(x, y);
+				let potSum = 0;
+
+				for (let obj of _objects)
+				{
+					for (let pot of obj.potentials)
+					{
+						if (pot.type !== _potType) continue;
+						let objCoordPos = obj.worldCoordToObjectCoord(curPos);
+						let curPot = pot.calcPotential(objCoordPos);
+						potSum += curPot;
+					}
+				}
+				let normPot = potSum;
+
+				let pxPos = curPos.copy().multiply(this.scalar);
+
+				let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
+				let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
+
+				this.ctx.fillStyle = `rgba(${r}, 0, ${b}, 0.5)`;
+
+				this.ctx.beginPath();
+				this.ctx.fillRect(pxPos.x - this.scalar.x * step / 2, pxPos.y - this.scalar.y * step / 2, this.scalar.x * step, this.scalar.y * step);
+				this.ctx.closePath();
+				this.ctx.fill();
+			}
+
+		}
+	}
+
 }
 
 
@@ -167,16 +210,12 @@ export class PotentialRenderer extends BaseRenderer {
 
 				this.ctx.fillStyle = `rgb(${r}, 0, ${b})`;
 				this.ctx.beginPath();
-				this.ctx.fillRect(pxPos.x, pxPos.y, this.scalar.x * step, this.scalar.y * step);
+				this.ctx.fillRect(pxPos.x - this.scalar.x * step / 2, pxPos.y - this.scalar.y * step / 2, this.scalar.x * step, this.scalar.y * step);
 				this.ctx.closePath();
 				this.ctx.fill();
 			}
 
 		}
-
-
-
-
 	}
 }
 

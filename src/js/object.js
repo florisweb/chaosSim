@@ -117,7 +117,7 @@ class Object {
 
 	// --- Transformations ---
 	worldCoordToObjectCoord(_vec2d) {
-		let deltaFromCentre_world = _vec2d.subtract(this.position).subtract(this.centreOfRotation);
+		let deltaFromCentre_world = _vec2d.copy().subtract(this.position).subtract(this.centreOfRotation);
 		let deltaFromCentre_object = deltaFromCentre_world.copy().rotate(this.angle);
 		return deltaFromCentre_object.add(this.centreOfRotation);
 	}
@@ -417,7 +417,15 @@ export class ChargedParticle extends Object {
 		const radius = 0.5;
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
-		// this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
-		this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: 1}));
+		this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
+	}
+}
+
+export class LJParticle extends Object {
+	constructor({position, charge}) {
+		const radius = 0.5;
+		super(new CircleGeometry(radius), new ArmMaterial);
+		this.position = position;
+		this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}));
 	}
 }

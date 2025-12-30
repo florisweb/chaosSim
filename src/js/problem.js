@@ -160,20 +160,11 @@ export class DoublePendulumProblem extends Problem {
 
 
 
-import { ChargedParticle } from './object.js';
+import { ChargedParticle, LJParticle } from './object.js';
 
 export class PotentialTestProblem extends Problem {
 	name = 'Potential Test';
-	constants = {
-
-		
-	}
-
-	recordables = [
-		
-	];
-
-
+	
 	constructor({parameters} = {}) {
 		super({parameters});
 	}
@@ -185,8 +176,26 @@ export class PotentialTestProblem extends Problem {
 		simulation.objects.push(particleA);
 		simulation.objects.push(particleB);
 		simulation.objects.push(particleC);
-		
+	}
+}
 
-		// prevPole.connect(rightPole, SpringConnector);
+
+export class PotentialTest2Problem extends Problem {
+	name = 'Potential Test 2';
+	
+	constructor({parameters} = {}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		let spacing = 3;
+		for (let x = 0; x < 10; x++)
+		{
+			for (let y = 0; y < 10; y++)
+			{
+				let pos = new Vector2D(10 + x * spacing, 10 + y * spacing);
+				simulation.objects.push(new LJParticle({position: pos, charge: -1}))
+			}
+		}
 	}
 }
