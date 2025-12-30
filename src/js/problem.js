@@ -187,15 +187,20 @@ export class PotentialTest2Problem extends Problem {
 	}
 
 	setup(simulation) {
-		let spacing = 3;
-		for (let x = 0; x < 10; x++)
+		let spacing = 4;
+		const count = 10;
+		for (let x = 0; x < count; x++)
 		{
-			for (let y = 0; y < 10; y++)
+			for (let y = 0; y < count; y++)
 			{
-				let pos = new Vector2D(10 + x * spacing, 10 + y * spacing);
-				simulation.objects.push(new LJParticle({position: pos, charge: -1}))
+				let pos = new Vector2D(10 + x * spacing, 10 + y * spacing + Math.random());
+				simulation.objects.push(new LJParticle({position: pos, period: 2 * 1}))
 			}
 		}
+		
+
+		// simulation.objects.push(new LJParticle({position: new Vector2D(10, 10), period: 1}))
+		// simulation.objects.push(new LJParticle({position: new Vector2D(12, 10), period: 1}))
 	}
 }
 

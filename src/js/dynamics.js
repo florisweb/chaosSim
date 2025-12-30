@@ -68,7 +68,8 @@ export class WorldBoundDynamic extends Dynamic {
 
 
 export class TransFrictionDynamic extends Dynamic {
-	scalar = .1;
+	// scalar = .1;
+	scalar = .02;
 	applyForce(_dt, _simulation) {
 		this._object.applyForce(this._object.centreOfRotation, this._object.velocity.copy().scale(-this.scalar * this._object.mass));
 	}

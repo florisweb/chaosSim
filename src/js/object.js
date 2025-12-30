@@ -410,7 +410,7 @@ export class PendulumArm extends Object {
 
 
 
-import { ChargePotential, LJPotential } from './potentials.js';
+import { ChargePotential, LJPotential, LJPeriodPotential } from './potentials.js';
 
 export class ChargedParticle extends Object {
 	constructor({position, charge}) {
@@ -423,14 +423,21 @@ export class ChargedParticle extends Object {
 }
 
 export class LJParticle extends Object {
-	constructor({position, charge}) {
+	constructor({position, period, angle}) {
 		const radius = 0.5;
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
-		this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}));
+		this.angle |= angle;
+		// this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}));
+		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation.copy().add(new Vector2D(0, 0)), sigma: radius * 2 * 1.5, period: period}));
+
 		this.addDynamic(WorldBoundDynamic);
+		this.addDynamic(TransFrictionDynamic);
 	}
 }
+
+
+
 
 export class ElecDipoleObject extends Object {
 	constructor({position, size, angle}) {

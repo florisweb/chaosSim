@@ -142,7 +142,6 @@ export default class Renderer extends BaseRenderer {
 
 	drawPotentialsOfType(_objects, _potType) {
 		let step = 0.5;
-		let objectPos = this.viewSize.copy().scale(0.5);
 		for (let x = 0; x < this.viewSize.x; x += step)
 		{
 			for (let y = 0; y < this.viewSize.y; y += step)
@@ -152,6 +151,7 @@ export default class Renderer extends BaseRenderer {
 
 				for (let obj of _objects)
 				{
+					// let obj = _objects[0];
 					for (let pot of obj.potentials)
 					{
 						if (pot.type !== _potType) continue;

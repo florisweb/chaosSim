@@ -90,7 +90,7 @@ export default class Simulation {
 		// Calculate potentials
 		for (let pot of this.potentialTypes)
 		{
-			if (pot.isSymmetric)
+			if (pot.isSymmetric && false)
 			{
 				for (let i = 0; i < this.objects.length; i++)
 				{
@@ -129,14 +129,26 @@ export default class Simulation {
 							{
 								if (potJ.type != pot.type) continue;
 
-								let otherPotPos = this.objects[j].position.copy().add(potJ.relPos);
-								let objCoords = this.objects[i].worldCoordToObjectCoord(otherPotPos);
-								let delta = potI.relPos.difference(objCoords);
+								// let otherPotPos = this.objects[j].position.copy().add(potJ.relPos);
+								// let objCoords = this.objects[i].worldCoordToObjectCoord(otherPotPos);
+								// let delta = potI.relPos.difference(objCoords);
+								// let dist = delta.length;
+								// if (dist > potI.maxDist && dist > potJ.maxDist) continue; // Neglicable
+
+								// let force = potI.calcForce(objCoords, potJ, delta, dist);
+								// this.objects[i].applyForce(potI.relPos, force);
+
+
+
+								let potPos = this.objects[i].position.copy().add(potI.relPos);
+								let objCoords = this.objects[j].worldCoordToObjectCoord(potPos);
+								let delta = potJ.relPos.difference(objCoords);
 								let dist = delta.length;
 								if (dist > potI.maxDist && dist > potJ.maxDist) continue; // Neglicable
 
-								let force = potI.calcForce(objCoords, potJ, delta, dist);
+								let force = potJ.calcForce(objCoords, potI, delta, dist);
 								this.objects[i].applyForce(potI.relPos, force);
+								this.objects[j].applyForce(potJ.relPos, force.copy().scale(-1)); // Newtons second law
 							}
 						}
 					}

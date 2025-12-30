@@ -40,7 +40,7 @@ export class ChargePotential extends Potential {
 		let dist = delta.length;
 
 		// Todo: true equation
-		return 1/dist * this.charge; // * Math.sin(delta.angle * 5);
+		return 1/dist * this.charge;
 	}
 	calcForce(_queryPos_obj, _otherPot = {charge: 1}, _delta = false, _dist = false) {
 		let dist = _dist;
@@ -52,15 +52,102 @@ export class ChargePotential extends Potential {
 		}
 
 		// Todo: true equation
-		let forceMagnitude = (dist**-2) * this.charge * _otherPot.charge; // * Math.sin(delta.angle * 5);
+		let forceMagnitude = -(dist**-2) * this.charge * _otherPot.charge;
 		let force = delta.copy()
-		force.length = -forceMagnitude; // Force is -du/dx
+		force.length = -forceMagnitude;
 		return force;
 	}
 }
 
 
-export class LJPotential extends Potential {
+// export class LJPotential extends Potential {
+// 	static isSymmetric = true;
+// 	static type = 'LJPot';
+
+// 	sigma = 1;
+// 	epsilon = 10;
+// 	constructor({relPos_objCoords, sigma}) {
+// 		super({relPos_objCoords});
+// 		this.sigma = sigma || 1;
+// 		this.maxDist = 3 * sigma;
+// 	}
+
+// 	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge
+// 		let delta = this.relPos.difference(_queryPos_obj);
+// 		let dist = delta.length;
+
+// 		// Todo: true equation
+// 		return 4 * this.epsilon * ((this.sigma / dist)**12 - (this.sigma / dist)**6)
+// 	}
+// 	calcForce(_queryPos_obj, _otherPot = {charge: 1}, _delta = false, _dist = false) {
+// 		let dist = _dist;
+// 		let delta = _delta;
+// 		if (!_delta) 
+// 		{
+// 			delta = this.relPos.difference(_queryPos_obj);
+// 			dist = delta.length;
+// 		}
+
+// 		let forceMagnitude = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7);
+
+// 		let force = delta.copy()
+// 		force.length = -forceMagnitude; // Force is -du/dx
+// 		return force;
+// 	}
+// }
+
+
+
+export class LJPeriodPotential extends Potential {
+	static isSymmetric = false;
+	static type = 'LJLikePot';
+
+	sigma = 1;
+	epsilon = 10;
+	period = 0;
+	constructor({relPos_objCoords, sigma, period}) {
+		super({relPos_objCoords});
+		this.sigma = sigma || 1;
+		this.maxDist = 4 * sigma;
+		this.period = period ;
+	}
+
+	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge
+		let delta = this.relPos.difference(_queryPos_obj);
+		let dist = delta.length;
+
+		return 4 * this.epsilon * (
+			(this.sigma / dist)**12
+			 - (this.sigma / dist)**6 * Math.cos(delta.angle * this.period)
+		)
+	}
+	calcForce(_queryPos_obj, _otherPot = {charge: 1}, _delta = false, _dist = false) {
+		let dist = _dist;
+		let delta = _delta;
+		if (!_delta) 
+		{
+			delta = this.relPos.difference(_queryPos_obj);
+			dist = delta.length;
+		}
+
+		// let forceMagnitude = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7) * Math.cos(delta.angle * this.period + 1 * Math.PI);
+		let dudr = 4 * this.epsilon * (
+			-12 * (this.sigma)**12 * dist**-13 
+			+ 6 * (this.sigma)**6*dist**-7 * Math.cos(delta.angle * this.period)
+		);
+		let dudphi = 4 * this.epsilon * (this.sigma / dist)**6 * Math.sin(delta.angle * this.period) * this.period
+
+		let force = delta.copy();
+		force.length = -dudr; // Force is -du/dr
+
+		let perp = delta.perpendicular;
+		perp.length = -dudphi;  // -du/dphi
+		force.add(perp);
+		return force;
+	}
+}
+
+export class LJPotential extends LJPeriodPotential {
 	static isSymmetric = true;
 	static type = 'LJPot';
 
@@ -69,15 +156,14 @@ export class LJPotential extends Potential {
 	constructor({relPos_objCoords, sigma}) {
 		super({relPos_objCoords});
 		this.sigma = sigma || 1;
-		this.maxDist = 3 * sigma;
+		// this.maxDist = 4 * sigma;
 	}
 
 	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge
 		let delta = this.relPos.difference(_queryPos_obj);
 		let dist = delta.length;
 
-		// Todo: true equation
-		return 4 * this.epsilon * ((this.sigma / dist)**12 - (this.sigma / dist)**6)
+		return 4 * this.epsilon * ((this.sigma / dist)**12 - (this.sigma / dist)**6);
 	}
 	calcForce(_queryPos_obj, _otherPot = {charge: 1}, _delta = false, _dist = false) {
 		let dist = _dist;
@@ -88,12 +174,15 @@ export class LJPotential extends Potential {
 			dist = delta.length;
 		}
 
-		let forceMagnitude = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7);
+		let dudr = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7);		
 
-		let force = delta.copy()
-		force.length = -forceMagnitude; // Force is -du/dx
+		let force = delta.copy();
+		force.length = -dudr; // Force is -du/dr
 		return force;
 	}
 }
 
-export const potentialTypes = [ChargePotential, LJPotential];
+
+
+
+export const potentialTypes = [ChargePotential, LJPotential, LJPeriodPotential];
