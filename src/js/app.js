@@ -20,14 +20,14 @@ const App = new class {
 
 	config = {
 		renderer: {
-			renderPotType: ''
+			renderPotType: 'ChargePot'
 		}
 	}
 
 	constructor() {
 		window.App = this;
 
-		this.availableProblems = [new PotentialTest2Problem, new DipoleProblem, new PotentialTestProblem, new ChaoticWaterWheelProblem, new BridgeProblem, new DoublePendulumProblem];
+		this.availableProblems = [new PotentialTest2Problem, new PotentialTestProblem,  new DipoleProblem, new ChaoticWaterWheelProblem, new BridgeProblem, new DoublePendulumProblem];
 
 		let size = new Vector2D(50, 50);
 
@@ -82,12 +82,12 @@ const App = new class {
 	}
 
 	draw() {
-		// this.renderer.draw(this.simulation, this.config.renderer);
+		this.renderer.draw(this.simulation, this.config.renderer);
 		requestAnimationFrame(() => this.draw());
 	}
 
 	update() {
-		this.renderer.draw(this.simulation, this.config.renderer);
+		// this.renderer.draw(this.simulation, this.config.renderer);
 		this.simulation.update();
 		this.simulationPanel.update(this.simulation);
 		setTimeout(() => this.update(), 1);

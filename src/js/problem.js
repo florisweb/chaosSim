@@ -194,7 +194,7 @@ export class PotentialTest2Problem extends Problem {
 			for (let y = 0; y < count; y++)
 			{
 				let pos = new Vector2D(10 + x * spacing, 10 + y * spacing + Math.random());
-				simulation.objects.push(new LJParticle({position: pos, period: 2 * 1}))
+				simulation.objects.push(new LJParticle({position: pos, period: 2 * 2}))
 			}
 		}
 		
