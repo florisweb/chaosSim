@@ -53,100 +53,47 @@ class BaseRenderer {
 export default class Renderer extends BaseRenderer {
 	curObject;
 	
-	#potKernel;
-	#flattenDataKernel;
 	#potResulution = 1; // 2x2 'pixels' - must be integer
+	renderWorker;
+	workerConfig = {};
+
+	#workerRequest;
 	constructor({canvas, viewSize}) {
 		super(...arguments);
 
+		this.renderWorker = new Worker(new URL("./renderWorker.js", import.meta.url));
+		this.renderWorker.onmessage = (e) => this.#handleWorkerMessage(e.data);
+
 		let scalar = this.scalar.scale(1 / this.#potResulution);
 		let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
-		// this.#potKernel = gpu.createKernel(function(_positions, _posLength, _arrSize, _viewSize) {
-		// 	const sigma = 0.5 * 2 * 1.5 / _viewSize[0]; // In perc
-		// 	const epsilon = 10;
-		// 	const period = 2 * 5;
 
-		// 	// All position units in perc (0-1)
-		// 	let x = this.thread.y / _arrSize[0];
-		// 	let y = this.thread.x / _arrSize[1];
-
-		// 	let sum = 0;
-
-		// 	for (let i = 0; i < _posLength; i++)
-		// 	{
-		// 		let dx = _positions[i][0] - x;
-		// 		let dy = _positions[i][1] - y;
-		// 		let distance = Math.sqrt(dx**2 + dy**2);
-		// 		let angle = Math.atan2(dy, dx);
-
-		// 		let potVal = 4 * epsilon * (
-		// 			(sigma / distance)**12 - (sigma / distance)**6 * Math.cos(angle * period)
-		// 		);
-
-		// 		sum += potVal;
-		// 	}
-		// 	let normPot = sum;
-		// 	let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
-		// 	let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
-
-		//     return [r, 0, b];
-		// }).setOutput(kernelOutputSize.value);
-
-
-		this.#potKernel = gpu.createKernel(function(_positions, _sigmas, _periods, _posLength, _arrSize, _viewSize) {
-			const epsilon = 10;
-
-			// All position units in perc (0-1)
-			const channels = 4;
-			let index = this.thread.x;
-			let arrX = (index % (_arrSize[0] * channels)) / channels;
-			let arrY = Math.floor((index / channels - arrX) / _arrSize[1]);
-
-			let channel = index % channels;
-			let x = arrX / _arrSize[0];
-			let y = arrY / _arrSize[1];
-
-			let sum = 0;
-			for (let i = 0; i < _posLength; i++)
-			{
-				const sigma = _sigmas[i] / _viewSize[0]; // In perc
-				let dx = _positions[i][0] - x;
-				let dy = _positions[i][1] - y;
-				let distance = Math.sqrt(dx**2 + dy**2);
-				let angle = Math.atan2(dy, dx);
-
-				let potVal = 4 * epsilon * (
-					(sigma / distance)**12 - (sigma / distance)**6 * Math.cos(angle * _periods[i])
-				);
-
-				sum += potVal;
-			}
-
-			let normPot = sum / 2;
-			let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
-			let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
-			
-			let color = [r, 0, b, 125]
-		    return color[channel];
-		}).setOutput([kernelOutputSize.value[0] * kernelOutputSize.value[1] * 4]);
-
-
-
-		// this.#flattenDataKernel = gpu.createKernel(function(_data, _size, _resolution) {
-		// 	const channels = 4;
-		// 	let index = this.thread.x;
-		// 	let x = index % (_size[0] * channels);
-		// 	let y = Math.floor((index / channels - x) / _size[1]);
-		// 	let channel = index % channels;
-
-		// 	if (channel === 3) return 255;
-		//     return _data[x][y][channel];
-		// }).setOutput([kernelOutputSize.x * kernelOutputSize.y * 4 * this.#potResulution**2]);
+		this.workerConfig = {
+			pxOutputSize: kernelOutputSize.value,
+			viewSize: viewSize.value
+		}
+		this.renderWorker.postMessage({
+			type: 'setup',
+			data: this.workerConfig
+		});
 	}
 	
-	draw(_simulation, _renderConfig) {
-		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		if (_renderConfig.renderPotType) this.drawPotentialsOfType(_simulation.objects, _renderConfig.renderPotType);
+	#handleWorkerMessage(_message) {
+		switch (_message.type) 
+		{
+			case "potentialResult":
+				const imgData = new ImageData(_message.data, this.workerConfig.pxOutputSize[0], this.workerConfig.pxOutputSize[1]);
+				this.#workerRequest.resolve(imgData);	
+			break;
+		}
+	}
+
+
+	async draw(_simulation, _renderConfig) {
+		if (_renderConfig.renderPotType) {
+			let potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
+			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			if (potPxData) this.ctx.putImageData(potPxData, 0, 0);
+		} else this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		for (let object of _simulation.objects)
 		{
@@ -227,12 +174,7 @@ export default class Renderer extends BaseRenderer {
 	}
 
 
-
-	drawPotentialsOfType(_objects, _potType) {
-		let scalar = this.scalar.scale(1 / this.#potResulution);
-		let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
-
-			
+	async requestPotentialOfTypeData(_objects, _potType) {
 		let potPosses = [];
 		let sigmas = [];
 		let periods = [];
@@ -249,75 +191,56 @@ export default class Renderer extends BaseRenderer {
 		}
 		if (potPosses.length === 0) return;
 
+		this.#workerRequest = Promise.withResolvers();
+		this.renderWorker.postMessage({
+			type: 'calcPotential',
+			data: {potPosses, sigmas, periods}
+		});
 
-		console.time('calc');
-		let pxArr = new Uint8ClampedArray(this.#potKernel(potPosses, sigmas, periods, potPosses.length, kernelOutputSize.value, this.viewSize.value));
-		console.timeEnd('calc');
+		return this.#workerRequest.promise;
+	}
 
-		console.time('set');
-		const imgData = new ImageData(pxArr, kernelOutputSize.x, kernelOutputSize.y);
-		this.ctx.putImageData(imgData, 0, 0);
-		console.timeEnd('set');
+	async drawPotentialsOfType(_objects, _potType) {
+		let potPosses = [];
+		let sigmas = [];
+		let periods = [];
+		for (let obj of _objects)
+		{
+			for (let pot of obj.potentials)
+			{
+				if (pot.type !== _potType) continue;
+				let potPos = obj.objectCoordToWorldCoord(pot.relPos);
+				potPosses.push([potPos.x / this.viewSize.x, potPos.y / this.viewSize.y])
+				sigmas.push(pot.sigma);
+				periods.push(pot.period);
+			}
+		}
+		if (potPosses.length === 0) return;
+
+		this.#workerRequest = Promise.withResolvers();
+		this.renderWorker.postMessage({
+			type: 'calcPotential',
+			data: {potPosses, sigmas, periods}
+		});
+
+		let result = await this.#workerRequest.promise;
+		this.ctx.putImageData(result, 0, 0);
 
 
 
 
-		// let outPixels = calcPixels(_objects.map(o => o.position.value), _objects.length, kernelOutputSize.value, scalar.value);
-		// _objects = [_objects[0]];
+		// todo Call webworker - ideally with async await
 
-		// console.time('calc');
-		// let scalar = this.scalar.scale(1 / this.#potResulution);
-		// let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
-
-		// let objPosses = _objects.map(o => [o.position.value[0] / this.viewSize.x, o.position.value[1] / this.viewSize.y]);
-
-		// console.time('calc');
-		// let outPixels = this.#potKernel(objPosses, objPosses.length, kernelOutputSize.value, this.viewSize.value);
-		// console.timeEnd('calc');
-
-		// console.time('flatten');
-		// let pxArr = new Uint8ClampedArray(this.#flattenDataKernel(outPixels, kernelOutputSize.value, this.#potResulution));
-		// console.timeEnd('flatten');
 
 		// console.time('set');
-		// const imgData = new ImageData(pxArr ,kernelOutputSize.x, kernelOutputSize.y);
+		// const imgData = new ImageData(pxArr, kernelOutputSize.x, kernelOutputSize.y);
 		// this.ctx.putImageData(imgData, 0, 0);
 		// console.timeEnd('set');
 
-		// console.timeEnd('calc');
-		// console.time('write');
-		// const boxSizeWidth = Math.round(this.canvas.width / outPixels.length);
-		// const boxSizeHeight = Math.round(this.canvas.height / outPixels[0].length);
-		// for (let x = 0; x < outPixels.length; x++)
-		// {
-		// 	for (let y = 0; y < outPixels[x].length; y++)
-		// 	{
-		// 		this.ctx.fillStyle = 'rgba(' + outPixels[x][y].join(',') + ', 0.5)';
-		// 		this.ctx.fillRect(x * boxSizeWidth, y * boxSizeHeight, boxSizeWidth, boxSizeHeight);
-		// 		this.ctx.fill();
-		// 	}
-		// }
-		// console.timeEnd('write');
 
 
-		// let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-	
-		// for (let x = 0; x < outPixels.length; x++)
-		// {
-		// 	for (let y = 0; y < outPixels[x].length; y++)
-		// 	{
-		// 		let index = 4 * (x + y * imageData.width);
-		// 		imageData.data[index + 0] = outPixels[x][y][0];
-		// 		imageData.data[index + 1] = outPixels[x][y][1];
-		// 		imageData.data[index + 2] = outPixels[x][y][2];
-		// 		imageData.data[index + 3] = 255;
-		// 	}
 
-		// }
-
-		// this.ctx.putImageData(imageData, 0, 0);
-
-
+		// Old school - fallback
 
 		// let step = 0.5;
 		// for (let x = 0; x < this.viewSize.x; x += step)
