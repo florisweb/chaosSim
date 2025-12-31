@@ -61,6 +61,8 @@ export default class Renderer extends BaseRenderer {
 	constructor({canvas, viewSize}) {
 		super(...arguments);
 
+		this.#createPreDrawContext();
+
 		this.renderWorker = new Worker(new URL("./renderWorker.js", import.meta.url));
 		this.renderWorker.onmessage = (e) => this.#handleWorkerMessage(e.data);
 
@@ -76,6 +78,27 @@ export default class Renderer extends BaseRenderer {
 			data: this.workerConfig
 		});
 	}
+
+	#createPreDrawContext() {
+		this.trueCtx = this.ctx;
+		this.preDrawCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
+
+		this.ctx = this.preDrawCanvas.getContext('2d');
+		this.ctx.constructor.prototype.circle = function(x, y, size) {
+		    if (size <= 0) return;
+		    this.beginPath();
+		    this.ellipse(
+		      x, 
+		      y, 
+		      size,
+		      size,
+		      0,
+		      0,
+		      2 * Math.PI
+		    );
+		    this.closePath();
+		}
+	}
 	
 	#handleWorkerMessage(_message) {
 		switch (_message.type) 
@@ -89,16 +112,19 @@ export default class Renderer extends BaseRenderer {
 
 
 	async draw(_simulation, _renderConfig) {
-		if (_renderConfig.renderPotType) {
-			let potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
-			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			if (potPxData) this.ctx.putImageData(potPxData, 0, 0);
-		} else this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
+		// Write to pre-draw canvas
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		for (let object of _simulation.objects)
 		{
 			this.drawObject(object);
 		}
+
+		let potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
+
+		// Write the pre-drawn data and the worker-rendered data to the true canvas
+		this.trueCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		if (potPxData) this.trueCtx.putImageData(potPxData, 0, 0);
+		this.trueCtx.drawImage(this.preDrawCanvas, 0, 0, this.preDrawCanvas.width, this.preDrawCanvas.height);
 	}
 
 
