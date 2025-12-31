@@ -119,7 +119,8 @@ export default class Renderer extends BaseRenderer {
 			this.drawObject(object);
 		}
 
-		let potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
+		let potPxData;
+		if (_renderConfig.renderPotType) potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
 
 		// Write the pre-drawn data and the worker-rendered data to the true canvas
 		this.trueCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -201,6 +202,7 @@ export default class Renderer extends BaseRenderer {
 
 
 	async requestPotentialOfTypeData(_objects, _potType) {
+		if (_potType !== 'LJLikePot') return this.drawPotentialsOfType_fallback(_objects, _potType); 
 		let potPosses = [];
 		let sigmas = [];
 		let periods = [];
@@ -226,83 +228,40 @@ export default class Renderer extends BaseRenderer {
 		return this.#workerRequest.promise;
 	}
 
-	async drawPotentialsOfType(_objects, _potType) {
-		let potPosses = [];
-		let sigmas = [];
-		let periods = [];
-		for (let obj of _objects)
+	async drawPotentialsOfType_fallback(_objects, _potType) { // CPU rendered fallback
+		let step = 0.5;
+		for (let x = 0; x < this.viewSize.x; x += step)
 		{
-			for (let pot of obj.potentials)
+			for (let y = 0; y < this.viewSize.y; y += step)
 			{
-				if (pot.type !== _potType) continue;
-				let potPos = obj.objectCoordToWorldCoord(pot.relPos);
-				potPosses.push([potPos.x / this.viewSize.x, potPos.y / this.viewSize.y])
-				sigmas.push(pot.sigma);
-				periods.push(pot.period);
+				let curPos = new Vector2D(x, y);
+				let potSum = 0;
+
+				for (let obj of _objects)
+				{
+					for (let pot of obj.potentials)
+					{
+						if (pot.type !== _potType) continue;
+						let objCoordPos = obj.worldCoordToObjectCoord(curPos);
+						let curPot = pot.calcPotential(objCoordPos);
+						potSum += curPot;
+					}
+				}
+				let normPot = potSum;
+
+				let pxPos = curPos.copy().multiply(this.scalar);
+
+				let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
+				let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
+
+				this.ctx.fillStyle = `rgba(${r}, 0, ${b}, 0.5)`;
+
+				this.ctx.beginPath();
+				this.ctx.fillRect(pxPos.x - this.scalar.x * step / 2, pxPos.y - this.scalar.y * step / 2, this.scalar.x * step, this.scalar.y * step);
+				this.ctx.closePath();
+				this.ctx.fill();
 			}
 		}
-		if (potPosses.length === 0) return;
-
-		this.#workerRequest = Promise.withResolvers();
-		this.renderWorker.postMessage({
-			type: 'calcPotential',
-			data: {potPosses, sigmas, periods}
-		});
-
-		let result = await this.#workerRequest.promise;
-		this.ctx.putImageData(result, 0, 0);
-
-
-
-
-		// todo Call webworker - ideally with async await
-
-
-		// console.time('set');
-		// const imgData = new ImageData(pxArr, kernelOutputSize.x, kernelOutputSize.y);
-		// this.ctx.putImageData(imgData, 0, 0);
-		// console.timeEnd('set');
-
-
-
-
-		// Old school - fallback
-
-		// let step = 0.5;
-		// for (let x = 0; x < this.viewSize.x; x += step)
-		// {
-		// 	for (let y = 0; y < this.viewSize.y; y += step)
-		// 	{
-		// 		let curPos = new Vector2D(x, y);
-		// 		let potSum = 0;
-
-		// 		for (let obj of _objects)
-		// 		{
-		// 			// let obj = _objects[0];
-		// 			for (let pot of obj.potentials)
-		// 			{
-		// 				if (pot.type !== _potType) continue;
-		// 				let objCoordPos = obj.worldCoordToObjectCoord(curPos);
-		// 				let curPot = pot.calcPotential(objCoordPos);
-		// 				potSum += curPot;
-		// 			}
-		// 		}
-		// 		let normPot = potSum;
-
-		// 		let pxPos = curPos.copy().multiply(this.scalar);
-
-		// 		let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
-		// 		let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
-
-		// 		this.ctx.fillStyle = `rgba(${r}, 0, ${b}, 0.5)`;
-
-		// 		this.ctx.beginPath();
-		// 		this.ctx.fillRect(pxPos.x - this.scalar.x * step / 2, pxPos.y - this.scalar.y * step / 2, this.scalar.x * step, this.scalar.y * step);
-		// 		this.ctx.closePath();
-		// 		this.ctx.fill();
-		// 	}
-
-		// }
 	}
 
 }

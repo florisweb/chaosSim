@@ -20,7 +20,7 @@ const App = new class {
 
 	config = {
 		renderer: {
-			renderPotType: 'ChargePot'
+			renderPotType: ''
 		}
 	}
 
