@@ -202,10 +202,9 @@ export default class Renderer extends BaseRenderer {
 
 
 	async requestPotentialOfTypeData(_objects, _potType) {
-		if (_potType !== 'LJLikePot') return this.drawPotentialsOfType_fallback(_objects, _potType); 
+
+		let parameters = [];
 		let potPosses = [];
-		let sigmas = [];
-		let periods = [];
 		for (let obj of _objects)
 		{
 			for (let pot of obj.potentials)
@@ -213,16 +212,53 @@ export default class Renderer extends BaseRenderer {
 				if (pot.type !== _potType) continue;
 				let potPos = obj.objectCoordToWorldCoord(pot.relPos);
 				potPosses.push([potPos.x / this.viewSize.x, potPos.y / this.viewSize.y])
-				sigmas.push(pot.sigma);
-				periods.push(pot.period);
 			}
 		}
+
+		switch (_potType)
+		{
+			case "LJLikePot":
+				let sigmas = [];
+				let periods = [];
+				for (let obj of _objects)
+				{
+					for (let pot of obj.potentials)
+					{
+						if (pot.type !== _potType) continue;
+						sigmas.push(pot.sigma);
+						periods.push(pot.period);
+					}
+				}
+				parameters = [potPosses, sigmas, periods, potPosses.length]
+				break;
+			case "ChargePot":
+				let charges = [];
+				for (let obj of _objects)
+				{
+					for (let pot of obj.potentials)
+					{
+						if (pot.type !== _potType) continue;
+						charges.push(pot.charge);;
+					}
+				}
+				parameters = [potPosses, charges, potPosses.length]
+				break;
+			default: 
+				// Not-supported potential type: fallback
+				return this.drawPotentialsOfType_fallback(_objects, _potType); 
+		}
+
 		if (potPosses.length === 0) return;
 
 		this.#workerRequest = Promise.withResolvers();
+
+
 		this.renderWorker.postMessage({
 			type: 'calcPotential',
-			data: {potPosses, sigmas, periods}
+			data: {
+				potType: _potType,
+				parameters: parameters,
+			}
 		});
 
 		return this.#workerRequest.promise;
