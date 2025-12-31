@@ -30,7 +30,7 @@ export default class SimulationPanel extends Panel {
 
 
 	update(_simulation) {
-		setTextToElement(this.HTML.curTime, Math.round(_simulation.time) + 's');
+		setTextToElement(this.HTML.curTime, Math.round(_simulation.time) + 's [' + Math.round(_simulation.relativeSpeed * 10) / 10 + ']');
 	}
 	onProblemChange(_problem, _simulation) {
 		this.#updateControlLegend(_simulation);

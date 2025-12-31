@@ -29,6 +29,8 @@ export default class Simulation {
 		this.objects = [];
 		this.updates = 0;
 		this.time = 0;
+		this.#lastRelSpeedUpdate = new Date();
+		this.#lastRelSpeedTime = 0;
 	}
 
 	potentialTypes = [];
@@ -56,14 +58,26 @@ export default class Simulation {
 	#lastUpdate = new Date();
 	updates = 0;
 	time = 0;
+
+	relativeSpeed = 0; // World time / real time
+
+	#lastRelSpeedUpdate = new Date();
+	#lastRelSpeedTime = 0;
 	update() {
-		let dt = Math.min((new Date() - this.#lastUpdate) / 1000, this.config.maxDt);
+		let trueDt = (new Date() - this.#lastUpdate) / 1000;
+		let dt = Math.min(trueDt, this.config.maxDt);
 		dt = this.config.maxDt; // If this varies the simulation becomes unreliable (for chaotic systems at least)
 		
 		for (let i = 0; i < this.#speed; i++)
 			this.#runSingleUpdate(dt);
 
 		this.#lastUpdate = new Date();
+
+
+		if (new Date() - this.#lastRelSpeedUpdate < 1 * 200) return; // Update every 1s
+		this.relativeSpeed = (this.time - this.#lastRelSpeedTime) / (new Date() - this.#lastRelSpeedUpdate) * 1000;
+		this.#lastRelSpeedUpdate = new Date();
+		this.#lastRelSpeedTime = this.time;
 	}
 
 	#runSingleUpdate(_dt) {
