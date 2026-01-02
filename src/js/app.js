@@ -10,6 +10,9 @@ import HeaderPanel from './headerPanel.js';
 import ControlPanel from './controlPanel.js';
 
 
+import { SimulationPage, ProjectSelectionPage } from './page.js';
+
+
 window.Vector2D = Vector2D;
 const App = new class {
 	simulation;
@@ -39,6 +42,10 @@ const App = new class {
 		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this);
 		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
 
+		this.simulationPage = new SimulationPage({HTML: document.querySelector('.page.simulator')}, this);
+		this.projectSelectionPage = new ProjectSelectionPage({HTML: document.querySelector('.page.projectSelection')}, this);
+
+		
 
 		let graphUpdateTimeout;
 		let graphUpdateTimeoutLength = 200;
@@ -55,8 +62,6 @@ const App = new class {
 		this.simulation.onUpdate = () => {
 			this.recorder.record(this.simulation, this.problem);
 		}
-
-		this.loadProblem(this.availableProblems[0]);
 
 
 
@@ -77,6 +82,7 @@ const App = new class {
 	}
 
 	async setup() {
+		this.simulationPage.open(this.availableProblems[0]);
 		this.draw();
 		this.update();
 	}

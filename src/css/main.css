@@ -7,10 +7,6 @@
 	--panelColor: #191919;
 	--overlayColor: #212121;
 	--panelBorderRadius: 5px;
-	--headerHeight: 50px;
-	--contentHeight: calc(100vh - var(--headerHeight) - 10px * 3);
-	--controlPanelWidth: 290px;
-	--graphPanelWidth: calc(100vw - var(--contentHeight) - var(--controlPanelWidth) - 10px * 5);
 }
 
 body {
@@ -18,29 +14,31 @@ body {
 	padding: 0;
 	transition: opacity .7s;
 	background: #111;
-
-	height: calc(100vh - 10px * 2);
-	width: calc(100vw - 10px * 2);
-
-	display: grid;
-	grid-template-areas: 
-		'header'
-		'content';
-	grid-template-rows: var(--headerHeight) auto;
-	grid-row-gap: 10px;
-	grid-column-gap: 10px;
 }
 
 
-.mainPanelHolder {
-	grid-area: content;
-	display: flex;
-	position: relative;
-	gap: 10px;
-	width: calc(100vw - 20px);
-	height: var(--contentHeight);
-	overflow-x: auto;
-	overflow-y: hidden;
+.page {
+	position: absolute;
+	left: 0;
+	top: 0;
+	margin: 10px;
+
+	width: calc(100vw - 10px * 2);
+	height: calc(100vh - 10px * 2);
+
+	transition: opacity 0.3s, transform 0.3s;
+}
+.page.noMargin {
+	margin: 0;
+
+	width: 100vw;
+	height: 100vh;
+}
+
+.page.hide {
+	pointer-events: none;
+	opacity: 0;
+	transform: scale(0.9);
 }
 
 
@@ -74,3 +72,55 @@ body {
 	color: #ccc;
 	font-size: 18px;
 }
+
+
+
+.page.simulator {
+	display: grid;
+	grid-template-areas: 
+		'header'
+		'content';
+	grid-template-rows: var(--headerHeight) auto;
+	grid-row-gap: 10px;
+	grid-column-gap: 10px;
+
+	--headerHeight: 50px;
+	--contentHeight: calc(100vh - var(--headerHeight) - 10px * 3);
+	--controlPanelWidth: 290px;
+	--graphPanelWidth: calc(100vw - var(--contentHeight) - var(--controlPanelWidth) - 10px * 5);
+}
+
+.page.simulator .mainPanelHolder {
+	grid-area: content;
+	display: flex;
+	position: relative;
+	gap: 10px;
+	width: calc(100vw - 20px);
+	height: var(--contentHeight);
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+
+
+.page.projectSelection {
+	overflow: auto;
+}
+.page.projectSelection .projectHolder {
+	display: grid;
+	margin: 40px;
+	gap: 30px;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+
+.page.projectSelection .projectHolder .problem {
+	aspect-ratio: .78;
+	padding: 20px;
+	transition: transform 0.3s;
+	cursor: pointer;
+}
+.page.projectSelection .projectHolder .problem:hover {
+	transform: scale(1.05);
+}
+

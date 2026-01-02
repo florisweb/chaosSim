@@ -8,52 +8,63 @@
 	<meta name="theme-color" content="rgb(255,89,100)"/>
 </head>
 <body class='loading'>
-	<div class="UIPanel headerPanel">
-		<div class="problemName item"></div>
-	</div>
-	<div class="mainPanelHolder">
-		<div class="UIPanel simulationPanel">
-			<canvas id='simulationCanvas' width="800" height="800"></canvas>
-			<div class="overlayPanel controlPanel">
-				<div class="text time">15s</div>
-				<div class="button refresh">⟳</div>
-				<div class="button startStop" runState='0'></div>
-				<div class="text speed">
-					<div class="valueHolder">10x</div>
-					<select class='speedSelect'>
-						<option value='1'>1x</option>
-						<option value='2'>2x</option>
-						<option value='5' selected='true'>5x</option>
-						<option value='10'>10x</option>
-						<option value='50'>50x</option>
-						<option value='100'>100x</option>
-					</select>
+
+	<div class="page simulator">
+		<div class="UIPanel headerPanel">
+			<div class="problemName item"></div>
+		</div>
+		<div class="mainPanelHolder">
+			<div class="UIPanel simulationPanel">
+				<canvas id='simulationCanvas' width="800" height="800"></canvas>
+				<div class="overlayPanel controlPanel">
+					<div class="text time">15s</div>
+					<div class="button refresh">⟳</div>
+					<div class="button startStop" runState='0'></div>
+					<div class="text speed">
+						<div class="valueHolder">10x</div>
+						<select class='speedSelect'>
+							<option value='1'>1x</option>
+							<option value='2'>2x</option>
+							<option value='5' selected='true'>5x</option>
+							<option value='10'>10x</option>
+							<option value='50'>50x</option>
+							<option value='100'>100x</option>
+						</select>
+					</div>
+				</div>
+				<div class="overlayPanel controlLegendPanel hide"></div>
+			</div>
+			<div class="UIPanel graphPanel hide" id='graphPanel'>
+			</div>
+			<div class="UIPanel controlPanel">
+				<div class="panelHeader">Control Panel</div>
+
+				<div class="section parameters">
+					<div class="sectionHeader">Parameters</div>
+					<div class="sectionContents"></div>
+				</div>
+				<div class="section constants">
+					<div class="sectionHeader">Constants</div>
+					<div class="sectionContents"></div>
+				</div>	
+
+				<div class="section potentials">
+					<div class="sectionHeader">Potentials</div>
+					<div class="sectionContents"></div>
+
+					<canvas class="potentialCanvas"></canvas>
 				</div>
 			</div>
-			<div class="overlayPanel controlLegendPanel hide"></div>
-		</div>
-		<div class="UIPanel graphPanel hide" id='graphPanel'>
-		</div>
-		<div class="UIPanel controlPanel">
-			<div class="panelHeader">Control Panel</div>
-
-			<div class="section parameters">
-				<div class="sectionHeader">Parameters</div>
-				<div class="sectionContents"></div>
-			</div>
-			<div class="section constants">
-				<div class="sectionHeader">Constants</div>
-				<div class="sectionContents"></div>
-			</div>	
-
-			<div class="section potentials">
-				<div class="sectionHeader">Potentials</div>
-				<div class="sectionContents"></div>
-
-				<canvas class="potentialCanvas"></canvas>
-			</div>
-		</div>
+		</div>	
 	</div>
+	
+	<div class="page projectSelection noMargin hide">
+		
+		<div class="projectHolder">
+		</div>
+
+	</div>
+
 	<script src='./main_min.js'></script>
 </body>
 </html>

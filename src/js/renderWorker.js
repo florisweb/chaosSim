@@ -77,7 +77,7 @@ function setup(_config) {
 			sum += potVal;
 		}
 
-		let normPot = sum / 10;
+		let normPot = sum;
 		let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
 		let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
 		
@@ -121,35 +121,3 @@ function setup(_config) {
 	}).setOutput([config.pxOutputSize[0] * config.pxOutputSize[1] * 4]);
 
 }
-
-// drawPotentialsOfType(_objects, _potType) {
-// 	let scalar = this.scalar.scale(1 / this.#potResulution);
-// 	let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
-
-		
-// 	let potPosses = [];
-// 	let sigmas = [];
-// 	let periods = [];
-// 	for (let obj of _objects)
-// 	{
-// 		for (let pot of obj.potentials)
-// 		{
-// 			if (pot.type !== _potType) continue;
-// 			let potPos = obj.objectCoordToWorldCoord(pot.relPos);
-// 			potPosses.push([potPos.x / this.viewSize.x, potPos.y / this.viewSize.y])
-// 			sigmas.push(pot.sigma);
-// 			periods.push(pot.period);
-// 		}
-// 	}
-// 	if (potPosses.length === 0) return;
-
-
-// 	console.time('calc');
-// 	let pxArr = new Uint8ClampedArray(this.#potKernel(potPosses, sigmas, periods, potPosses.length, kernelOutputSize.value, this.viewSize.value));
-// 	console.timeEnd('calc');
-
-// 	console.time('set');
-// 	const imgData = new ImageData(pxArr, kernelOutputSize.x, kernelOutputSize.y);
-// 	this.ctx.putImageData(imgData, 0, 0);
-// 	console.timeEnd('set');
-

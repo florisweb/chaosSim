@@ -104,7 +104,8 @@ export class LJPeriodPotential extends Potential {
 	static type = 'LJLikePot';
 
 	sigma = 1;
-	epsilon = 10;
+	// epsilon = 10;
+	epsilon = 1;
 	period = 0;
 	constructor({relPos_objCoords, sigma, period}, _object) {
 		super({relPos_objCoords}, _object);
@@ -130,7 +131,7 @@ export class LJPeriodPotential extends Potential {
 			delta = this.relPos.difference(_queryPos_obj);
 			dist = delta.length;
 		}
-		
+
 		let angle = delta.angle;
 		let dudr = 4 * this.epsilon * (
 			-12 * (this.sigma)**12 * dist**-13 

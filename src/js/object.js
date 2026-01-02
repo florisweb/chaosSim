@@ -428,7 +428,7 @@ export class LJParticle extends Object {
 		this.position = position;
 		if (typeof angle === 'number') this.angle = angle;
 		// this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}));
-		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation.copy().add(new Vector2D(0, 0)), sigma: radius * 2 * 1.5, period: period}, this));
+		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation.copy().add(new Vector2D(0, 0)), sigma: radius * 2, period: period}, this));
 
 		this.addDynamic(WorldBoundDynamic);
 		this.addDynamic(TransFrictionDynamic);

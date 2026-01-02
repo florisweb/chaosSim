@@ -7,7 +7,7 @@ export function setTextToElement(element, text) {
 
 export function createElement(_tag, _class) {
   let el = document.createElement(_tag);
-  if (_class) el.classList.add(_class);
+  if (_class) el.className = _class;
   return el;
 }
 
