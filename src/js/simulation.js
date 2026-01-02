@@ -101,7 +101,14 @@ export default class Simulation {
 			obj.calcForces(_dt, this);
 		}
 
-		// Calculate potentials
+		
+		this.#calculatePotentials(_dt);
+		this.onUpdate();
+	}
+
+
+
+	#calculatePotentials(_dt) {
 		for (let pot of this.potentialTypes)
 		{
 			if (pot.isSymmetric && false)
@@ -154,7 +161,9 @@ export default class Simulation {
 
 
 
-								let potPos = this.objects[i].position.copy().add(potI.relPos);
+								// Effect of potential J on object I
+
+								let potPos = this.objects[i].objectCoordToWorldCoord(potI.relPos);
 								let objCoords = this.objects[j].worldCoordToObjectCoord(potPos);
 								let delta = potJ.relPos.difference(objCoords);
 								let dist = delta.length;
@@ -162,7 +171,11 @@ export default class Simulation {
 
 								let force = potJ.calcForce(objCoords, potI, delta, dist);
 								this.objects[i].applyForce(potI.relPos, force);
-								this.objects[j].applyForce(potJ.relPos, force.copy().scale(-1)); // Newtons second law
+								// this.objects[j].applyForce(potJ.relPos, force.copy().scale(-1));
+
+								this.objects[j].applyForce(objCoords, force.copy().scale(-1)); // Newtons second law
+
+								
 							}
 						}
 					}
@@ -171,7 +184,43 @@ export default class Simulation {
 		}
 
 
-		this.onUpdate();
+	}
+
+
+
+	#updatePotentials_gpu(_dt) {
+		potKernels['ChargePot'] = gpu.createKernel(function(_positions, _charges, _posLength, _arrSize, _viewSize) {
+		// All position units in perc (0-1)
+		const channels = 4;
+		let index = this.thread.x;
+		let arrX = (index % (_arrSize[0] * channels)) / channels;
+		let arrY = Math.floor((index / channels - arrX) / _arrSize[1]);
+
+		let channel = index % channels;
+		let x = arrX / _arrSize[0];
+		let y = arrY / _arrSize[1];
+
+
+
+		let sum = 0;
+		for (let i = 0; i < _posLength; i++)
+		{
+			let dx = _positions[i][0] - x;
+			let dy = _positions[i][1] - y;
+			let distance = Math.sqrt(dx**2 + dy**2) * _viewSize[0]; // Convert unitary units to world units
+	
+			// Todo: true equation
+			let potVal = 1 / distance * _charges[i];
+			sum += potVal;
+		}
+
+		let normPot = sum;
+		let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
+		let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
+		
+		let color = [r, 0, b, 125]
+	    return color[channel];
+	}).setOutput([config.pxOutputSize[0] * config.pxOutputSize[1] * 4]);
 	}
 
 	// Hook

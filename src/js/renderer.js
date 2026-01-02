@@ -187,17 +187,18 @@ export default class Renderer extends BaseRenderer {
 
 
 
+	// DEBUG -> directly draws to true canvas
 	drawVector(_start, _delta, _color = '#f00') {
 		let end = _start.copy().add(_delta);
 		this.drawVectorTo(_start.copy().multiply(this.scalar), end.multiply(this.scalar), _color);
 	}
 	drawVectorTo(_start, _end, _color = '#f00') {
-		this.ctx.strokeStyle = _color;
-		this.ctx.beginPath();
-	    this.ctx.moveTo(_start.x, _start.y);
-	    this.ctx.lineTo(_end.x, _end.y);
-	    this.ctx.closePath();
-	    this.ctx.stroke();
+		this.trueCtx.strokeStyle = _color;
+		this.trueCtx.beginPath();
+	    this.trueCtx.moveTo(_start.x, _start.y);
+	    this.trueCtx.lineTo(_end.x, _end.y);
+	    this.trueCtx.closePath();
+	    this.trueCtx.stroke();
 	}
 
 
@@ -205,6 +206,7 @@ export default class Renderer extends BaseRenderer {
 
 		let parameters = [];
 		let potPosses = [];
+		let potAngles = [];
 		for (let obj of _objects)
 		{
 			for (let pot of obj.potentials)
@@ -212,6 +214,7 @@ export default class Renderer extends BaseRenderer {
 				if (pot.type !== _potType) continue;
 				let potPos = obj.objectCoordToWorldCoord(pot.relPos);
 				potPosses.push([potPos.x / this.viewSize.x, potPos.y / this.viewSize.y])
+				potAngles.push(obj.angle);
 			}
 		}
 
@@ -229,7 +232,7 @@ export default class Renderer extends BaseRenderer {
 						periods.push(pot.period);
 					}
 				}
-				parameters = [potPosses, sigmas, periods, potPosses.length]
+				parameters = [potPosses, potAngles, sigmas, periods, potPosses.length]
 				break;
 			case "ChargePot":
 				let charges = [];

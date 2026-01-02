@@ -82,18 +82,15 @@ class Object {
 
 
 		let perpendicular = _force_worldCoords.projectOnTo(delta_worldCoords.perpendicular)
-		App.renderer.drawVector(
-			this.objectCoordToWorldCoord(_pos_objectCoords),
-			_force_worldCoords.copy().scale(.01), '#555');
+		// App.renderer.drawVector(
+		// 	this.objectCoordToWorldCoord(_pos_objectCoords),
+		// 	_force_worldCoords.copy().scale(10), '#555');
 
-		App.renderer.drawVector(
-			this.objectCoordToWorldCoord(_pos_objectCoords),
-			perpendicular.copy().scale(0.01), '#fff');
+		// App.renderer.drawVector(
+		// 	this.objectCoordToWorldCoord(_pos_objectCoords),
+		// 	perpendicular.copy().scale(10), '#fff');
 	}
 
-	customUpdate() {
-
-	}
 
 
 
@@ -113,6 +110,8 @@ class Object {
 	}
 
 
+	// Overwritable
+	customUpdate() {}
 
 
 	// --- Transformations ---
@@ -417,7 +416,7 @@ export class ChargedParticle extends Object {
 		const radius = 0.5;
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
-		this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}));
+		this.addPotential(new ChargePotential({charge: charge, relPos_objCoords: this.centreOfRotation}, this));
 		this.addDynamic(WorldBoundDynamic);
 	}
 }
@@ -427,12 +426,13 @@ export class LJParticle extends Object {
 		const radius = 0.5;
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
-		this.angle |= angle;
+		if (typeof angle === 'number') this.angle = angle;
 		// this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}));
-		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation.copy().add(new Vector2D(0, 0)), sigma: radius * 2 * 1.5, period: period}));
+		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation.copy().add(new Vector2D(0, 0)), sigma: radius * 2 * 1.5, period: period}, this));
 
 		this.addDynamic(WorldBoundDynamic);
 		this.addDynamic(TransFrictionDynamic);
+		this.addDynamic(RotFrictionDynamic);
 	}
 }
 
@@ -446,8 +446,8 @@ export class ElecDipoleObject extends Object {
 		this.angle |= angle;
 		this.centreOfRotation = this.relativeCentreOfMass;
 
-		this.addPotential(new ChargePotential({charge: -1, relPos_objCoords:  new Vector2D(0, size.y/2)}));
-		this.addPotential(new ChargePotential({charge: 1, relPos_objCoords: new Vector2D(size.x, size.y/2)}));
+		this.addPotential(new ChargePotential({charge: -1, relPos_objCoords:  new Vector2D(0, size.y/2)}, this));
+		this.addPotential(new ChargePotential({charge: 1, relPos_objCoords: new Vector2D(size.x, size.y/2)}, this));
 	}
 }
 

@@ -10,8 +10,9 @@ class Potential {
 	relPos = new Vector2D(0, 0);
 	maxDist = Infinity;
 
-	constructor({relPos_objCoords}) {
+	constructor({relPos_objCoords}, _object) {
 		this.relPos = relPos_objCoords;
+		this._object = _object;
 	}
 
 	calcPotential(_queryPos_obj) {
@@ -30,8 +31,8 @@ export class ChargePotential extends Potential {
 	static isSymmetric = true;
 
 	charge = 1; // 1 = positive
-	constructor({relPos_objCoords, charge}) {
-		super({relPos_objCoords});
+	constructor({relPos_objCoords, charge}, _object) {
+		super({relPos_objCoords}, _object);
 		this.charge = charge || 1;
 	}
 
@@ -105,8 +106,8 @@ export class LJPeriodPotential extends Potential {
 	sigma = 1;
 	epsilon = 10;
 	period = 0;
-	constructor({relPos_objCoords, sigma, period}) {
-		super({relPos_objCoords});
+	constructor({relPos_objCoords, sigma, period}, _object) {
+		super({relPos_objCoords}, _object);
 		this.sigma = sigma || 1;
 		this.maxDist = 4 * sigma;
 		this.period = period ;
@@ -129,13 +130,13 @@ export class LJPeriodPotential extends Potential {
 			delta = this.relPos.difference(_queryPos_obj);
 			dist = delta.length;
 		}
-
-		// let forceMagnitude = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7) * Math.cos(delta.angle * this.period + 1 * Math.PI);
+		
+		let angle = delta.angle;
 		let dudr = 4 * this.epsilon * (
 			-12 * (this.sigma)**12 * dist**-13 
-			+ 6 * (this.sigma)**6*dist**-7 * Math.cos(delta.angle * this.period)
+			+ 6 * (this.sigma)**6*dist**-7 * Math.cos(angle * this.period)
 		);
-		let dudphi = 4 * this.epsilon * (this.sigma / dist)**6 * Math.sin(delta.angle * this.period) * this.period
+		let dudphi = 4 * this.epsilon * (this.sigma / dist)**6 * Math.sin(angle * this.period) * this.period
 
 		let force = delta.copy();
 		force.length = -dudr; // Force is -du/dr
@@ -143,7 +144,9 @@ export class LJPeriodPotential extends Potential {
 		let perp = delta.perpendicular;
 		perp.length = -dudphi;  // -du/dphi
 		force.add(perp);
-		return force;
+
+		// Force is in this object's coords -> rotate it back to world-coords
+		return force.rotate(-this._object.angle);
 	}
 }
 

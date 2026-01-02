@@ -49,8 +49,7 @@ function setup(_config) {
 	config.viewSize = _config.viewSize;
 
 
-
-	potKernels['LJLikePot'] = gpu.createKernel(function(_positions, _sigmas, _periods, _posLength, _arrSize, _viewSize) {
+	potKernels['LJLikePot'] = gpu.createKernel(function(_positions, _angles, _sigmas, _periods, _posLength, _arrSize, _viewSize) {
 		const epsilon = 10;
 
 		// All position units in perc (0-1)
@@ -62,15 +61,14 @@ function setup(_config) {
 		let channel = index % channels;
 		let x = arrX / _arrSize[0];
 		let y = arrY / _arrSize[1];
-
 		let sum = 0;
 		for (let i = 0; i < _posLength; i++)
 		{
 			const sigma = _sigmas[i] / _viewSize[0]; // In perc
-			let dx = _positions[i][0] - x;
-			let dy = _positions[i][1] - y;
+			let dx = x - _positions[i][0];
+			let dy = y - _positions[i][1];
 			let distance = Math.sqrt(dx**2 + dy**2);
-			let angle = Math.atan2(dy, dx);
+			let angle = Math.atan(dy, dx) + _angles[i]; // Apparently atan = atan(y, x)
 
 			let potVal = 4 * epsilon * (
 				(sigma / distance)**12 - (sigma / distance)**6 * Math.cos(angle * _periods[i])
@@ -79,11 +77,11 @@ function setup(_config) {
 			sum += potVal;
 		}
 
-		let normPot = sum / 2;
+		let normPot = sum / 10;
 		let r = Math.min(normPot > 0 ? normPot * 255 : 0, 255);
 		let b = Math.min(normPot < 0 ? -normPot * 255 : 0, 255);
 		
-		let color = [r, 0, b, 125]
+		let color = [r, 0, b, 125];
 	    return color[channel];
 	}).setOutput([config.pxOutputSize[0] * config.pxOutputSize[1] * 4]);
 

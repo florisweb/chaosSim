@@ -86,8 +86,9 @@ const App = new class {
 		requestAnimationFrame(() => this.draw());
 	}
 
-	update() {
-		// this.renderer.draw(this.simulation, this.config.renderer);
+	async update() {
+		// await this.renderer.draw(this.simulation, this.config.renderer);
+		
 		this.simulation.update();
 		this.simulationPanel.update(this.simulation);
 		setTimeout(() => this.update(), 1);
