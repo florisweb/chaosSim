@@ -1,4 +1,7 @@
-import { createElement, setTextToElement } from './polyfill.js';
+import { Vector2D } from './vector.js';
+import { createElement, setTextToElement, wait } from './polyfill.js';
+import Simulation from './simulation.js';
+import { BaseObjectRenderer } from './renderer.js';
 
 class Page {
 	static pages = [];
@@ -43,6 +46,7 @@ export class SimulationPage extends Page {
 		this.#App = _app;
 	}
 	onOpen(_problem) {
+		if (!_problem) return;
 		this.#App.loadProblem(_problem);
 	}
 }
@@ -54,11 +58,11 @@ export class ProjectSelectionPage extends Page {
 		super(...arguments);
 		this.#App = _app;
 		this.HTML.projectHolder = this.HTML.page.querySelector('.projectHolder');	
-	}
-
-	onOpen() {
 		this.updateProblemList(this.#App.availableProblems);
 	}
+
+	onOpen() {}
+
 
 	updateProblemList(_problems) {
 		this.HTML.projectHolder.innerHTML = '';
@@ -66,10 +70,14 @@ export class ProjectSelectionPage extends Page {
 		{
 			this.HTML.projectHolder.appendChild(this.#renderProblem(problem));
 		}
-
 	}
 
 	#renderProblem(_problem) {
+		const size = new Vector2D(50, 50);
+		const simulation = new Simulation({size: size});
+		_problem.setup(simulation);
+		simulation.setup();
+
 		let el = createElement('div', 'UIPanel problem');
 		el.innerHTML = `
 			<canvas class='previewCanvas'></canvas>
@@ -78,10 +86,24 @@ export class ProjectSelectionPage extends Page {
 		`;
 
 		setTextToElement(el.children[1], _problem.name);
-		setTextToElement(el.children[2], _problem.name);
-		el.addEventListener('click', () => {
-			App.simulationPage.open(_problem);
-		});
+		setTextToElement(el.children[2], this.#generateProblemDescriptionText(simulation));
+		el.addEventListener('click', () => App.simulationPage.open(_problem));
+		
+		this.#renderProblemPreview(el.children[0], simulation);
 		return el;
+	}
+	#generateProblemDescriptionText(_simulation) {
+		let potentials = _simulation.potentialTypes.map(p => p.name);
+		let dynamics = _simulation.getDynamicTypes(_simulation.objects).map(d => d.name);
+		dynamics = dynamics.filter(d => ['SpringDynamic', 'GravityDynamic'].includes(d));
+		return (potentials.length > 0 ? potentials.join(', ') + (dynamics.length ? ' - ' : '') : '') + dynamics.join(', ');
+
+	}
+
+	#renderProblemPreview(_canvas, _simulation) {
+		wait(0).then(() => {
+			const renderer = new BaseObjectRenderer({canvas: _canvas, viewSize: _simulation.size});
+			renderer.draw(_simulation, {});
+		});
 	}
 } 

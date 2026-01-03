@@ -7,6 +7,10 @@
 	--panelColor: #191919;
 	--overlayColor: #212121;
 	--panelBorderRadius: 5px;
+	--mainTextColor: #888;
+	--headerTextColor: #aaa;
+	--headerTextFontSize: 16px;
+
 }
 
 body {
@@ -14,6 +18,10 @@ body {
 	padding: 0;
 	transition: opacity .7s;
 	background: #111;
+}
+
+body.loading {
+	opacity: 0;
 }
 
 
@@ -54,8 +62,8 @@ body {
 	display: none;
 }
 .UIPanel > .panelHeader {
-	color: #aaa;
-	font-size: 16px;
+	color: var(--headerTextColor);
+	font-size: var(--headerTextFontSize);
 }
 
 
@@ -120,7 +128,28 @@ body {
 	transition: transform 0.3s;
 	cursor: pointer;
 }
+
+
 .page.projectSelection .projectHolder .problem:hover {
 	transform: scale(1.05);
 }
 
+
+.page.projectSelection .projectHolder .problem .title {
+	margin-top: 10px;
+	color: var(--headerTextColor);
+	font-size: var(--headerTextFontSize);
+}
+.page.projectSelection .projectHolder .problem .subTitle {
+	margin-top: 5px;
+	color: var(--mainTextColor);
+	font-size: 12px;
+}
+
+.page.projectSelection .projectHolder .problem .previewCanvas {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 1;
+	border: 1px solid #373737;
+	border-radius: var(--panelBorderRadius);
+}

@@ -52,6 +52,20 @@ export default class Simulation {
 		}
 		return [...potTypes.keys()];
 	}
+	getDynamicTypes(_objects) {
+		let dymTypes = new Set();
+		for (let obj of _objects)
+		{
+			let types = [];
+			if (obj.isObjectGroup)
+			{
+				types = this.getDynamicTypes(obj.objects);
+			} else types = obj.dynamics.map(p => p.constructor);
+
+			for (let type of types) dymTypes.add(type);
+		}
+		return [...dymTypes.keys()];
+	}
 
 
 	

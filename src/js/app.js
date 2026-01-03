@@ -79,13 +79,16 @@ const App = new class {
 		this.headerPanel.onProblemChange(_problem);
 		this.controlPanel.onProblemChange(_problem, this.simulation);
 		this.simulationPanel.onProblemChange(_problem, this.simulation);
+		this.update();
 	}
 
 	async setup() {
-		this.simulationPage.open(this.availableProblems[0]);
+		this.projectSelectionPage.open();
 		this.draw();
 		this.update();
 	}
+
+
 
 	async draw() {
 		await this.renderer.draw(this.simulation, this.config.renderer);
@@ -93,6 +96,7 @@ const App = new class {
 	}
 
 	async update() {
+		if (!this.problem) return;
 		// await this.renderer.draw(this.simulation, this.config.renderer);
 		
 		this.simulation.update();

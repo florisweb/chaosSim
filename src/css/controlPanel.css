@@ -16,7 +16,7 @@
 }
 
 .UIPanel.controlPanel .section .sectionHeader {
-	color: #777;
+	color: var(--mainTextColor);
 	font-size: 12px;
 	text-transform: uppercase;	
 }
@@ -41,12 +41,11 @@
 
 .UIPanel.controlPanel .section .sectionContents .propName, 
 .UIPanel.controlPanel .section .sectionContents .propValue {
-	color: #888;
+	color: var(--mainTextColor);
 	font-size: 12px;
 }
 
 .UIPanel.controlPanel .section .sectionContents .propName {
-
 	font-style: italic;
 }
 

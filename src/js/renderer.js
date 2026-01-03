@@ -50,9 +50,83 @@ class BaseRenderer {
 	draw() {}
 }
 
-export default class Renderer extends BaseRenderer {
+export class BaseObjectRenderer extends BaseRenderer {
 	curObject;
 	
+	constructor({canvas, viewSize}) {
+		super(...arguments);
+	}
+
+	
+
+	async draw(_simulation, _renderConfig) {
+		// Write to pre-draw canvas
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		for (let object of _simulation.objects)
+		{
+			this.drawObject(object);
+		}
+	}
+
+
+	drawObject(_object) {
+		if (_object.isObjectGroup) return this.drawObjectGroup(_object);
+
+		this.curObject = _object;
+		this.ctx.fillStyle = _object.material.getFillStyle();
+
+		_object.geometry.drawShape(this.ctx, this);
+		this.ctx.fill();
+		
+		// this.drawVector(_object.objectCoordToWorldCoord(_object.centreOfRotation), new Vector2D(0, -1), '#0af');
+		// this.drawVector(_object.objectCoordToWorldCoord(_object.geometry.relativeCentreOfMass), new Vector2D(0, -1), '#0fa');
+		// this.drawVector(_object.position, new Vector2D(0, -1), '#fa0');
+	}
+
+	drawObjectGroup(_objectGroup) {
+		for (let obj of _objectGroup.objects)
+		{
+			this.drawObject(obj);
+		}
+	}
+
+
+
+
+	lineTo(_pos) {
+		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
+		this.ctx.lineTo(pxCoords.x, pxCoords.y)
+	}
+	moveTo(_pos) {
+		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
+		this.ctx.moveTo(pxCoords.x, pxCoords.y)
+	}
+
+	drawCircle(_pos, _rad) {
+		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
+		const gradient = this.ctx.createConicGradient(-this.curObject.angle, pxCoords.x, pxCoords.y);
+
+		// Add five color stops
+		gradient.addColorStop(0, this.ctx.fillStyle);
+		gradient.addColorStop(1, this.ctx.fillStyle + 'd0');
+
+		this.ctx.fillStyle = gradient;
+		this.ctx.beginPath();
+	    this.ctx.ellipse(
+	      pxCoords.x, 
+	      pxCoords.y, 
+	      _rad * this.scalar.x,
+	      _rad * this.scalar.y,
+	      0,
+	      0,
+	      2 * Math.PI
+	    );
+	    this.ctx.closePath();
+	}
+}
+
+
+export default class Renderer extends BaseObjectRenderer {
 	#potResulution = 1; // 2x2 'pixels' - must be integer
 	renderWorker;
 	workerConfig = {};
@@ -127,63 +201,6 @@ export default class Renderer extends BaseRenderer {
 		if (potPxData) this.trueCtx.putImageData(potPxData, 0, 0);
 		this.trueCtx.drawImage(this.preDrawCanvas, 0, 0, this.preDrawCanvas.width, this.preDrawCanvas.height);
 	}
-
-
-	drawObject(_object) {
-		if (_object.isObjectGroup) return this.drawObjectGroup(_object);
-
-		this.curObject = _object;
-		this.ctx.fillStyle = _object.material.getFillStyle();
-
-		_object.geometry.drawShape(this.ctx, this);
-		this.ctx.fill();
-		
-		// this.drawVector(_object.objectCoordToWorldCoord(_object.centreOfRotation), new Vector2D(0, -1), '#0af');
-		// this.drawVector(_object.objectCoordToWorldCoord(_object.geometry.relativeCentreOfMass), new Vector2D(0, -1), '#0fa');
-		// this.drawVector(_object.position, new Vector2D(0, -1), '#fa0');
-	}
-
-	drawObjectGroup(_objectGroup) {
-		for (let obj of _objectGroup.objects)
-		{
-			this.drawObject(obj);
-		}
-	}
-
-
-
-
-
-	lineTo(_pos) {
-		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		this.ctx.lineTo(pxCoords.x, pxCoords.y)
-	}
-	moveTo(_pos) {
-		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		this.ctx.moveTo(pxCoords.x, pxCoords.y)
-	}
-
-	drawCircle(_pos, _rad) {
-		let pxCoords = this.curObject.objectCoordToWorldCoord(_pos).copy().multiply(this.scalar);
-		const gradient = this.ctx.createConicGradient(-this.curObject.angle, pxCoords.x, pxCoords.y);
-
-		// Add five color stops
-		gradient.addColorStop(0, this.ctx.fillStyle);
-		gradient.addColorStop(1, this.ctx.fillStyle + 'd0');
-
-		this.ctx.fillStyle = gradient;
-		this.ctx.beginPath();
-	    this.ctx.ellipse(
-	      pxCoords.x, 
-	      pxCoords.y, 
-	      _rad * this.scalar.x,
-	      _rad * this.scalar.y,
-	      0,
-	      0,
-	      2 * Math.PI
-	    );
-	    this.ctx.closePath();
-	}	
 
 
 
