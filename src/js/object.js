@@ -36,7 +36,9 @@ class Object {
 	}
 
 	connect(_other, _connectorClass, _relConnPosSelf, _relConnPosOther) {
-		let conn = new _connectorClass(this, _other, _relConnPosSelf, _relConnPosOther);
+		let conn = _connectorClass;
+		if (typeof _connectorClass === 'function') conn = new _connectorClass();
+		conn.bind(this, _other, _relConnPosSelf, _relConnPosOther);
 		this.dynamics.push(conn.dynamicA);
 		_other.dynamics.push(conn.dynamicB);
 	}
@@ -51,8 +53,12 @@ class Object {
 	}
 
 
-	addDynamic(_dynamicClass) {
-		let dynamic = new _dynamicClass(this);
+	addDynamic(_dynamicClassOrObject) {
+		let dynamic = _dynamicClassOrObject;
+		if (typeof _dynamicClassOrObject === 'function')
+		{
+			dynamic = new _dynamicClassOrObject(this);
+		}
 		this.dynamics.push(dynamic);
 		this.dynamics.sort((a, b) => a.order > b.order);
 	}
@@ -150,7 +156,6 @@ export class ObjectGroup extends Object {
 			inertia += obj.inertia + rotCentreDist**2 * obj.geometry.area;
 		}
 
-
 		return inertia;
 	}
 
@@ -230,11 +235,22 @@ export class ObjectGroup extends Object {
 
 
 
-export class TrueBucketObject extends ObjectGroup {
+export class WheelObject extends Object {
+	constructor({position, radius}) {
+		super(new CircleGeometry(radius), new ArmMaterial);
+		this.position = position;
+		
+		this.addRotationPin(new Vector2D(0, 0));
+		this.addDynamic(GravityDynamic);
+	}
+}
+
+
+export class BucketObject extends ObjectGroup {
 	#waterObject;
 	#leakSpeed;
 	#fillSpeed;
-	constructor({position, size, wallThickness, leakSpeed, fillSpeed}) {
+	constructor({position, size, wallThickness, leakSpeed, fillSpeed, transFrictionScalar, rotFrictionScalar}) {
 		let left = new BucketWallObject({position: new Vector2D(0, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
 		let bottom = new BucketWallObject({position: new Vector2D(0, size.y - wallThickness), size: new Vector2D(size.x, wallThickness)});
 		let right = new BucketWallObject({position: new Vector2D(size.x - wallThickness, 0), size: new Vector2D(wallThickness, size.y - wallThickness)});
@@ -247,8 +263,8 @@ export class TrueBucketObject extends ObjectGroup {
 
 		this.position = position;
 		this.centreOfRotation = this.relativeCentreOfMass;
-		this.addDynamic(RotFrictionDynamic);
-		this.addDynamic(TransFrictionDynamic);
+		this.addDynamic(new RotFrictionDynamic(this, rotFrictionScalar));
+		this.addDynamic(new TransFrictionDynamic(this, transFrictionScalar));
 	}
 
 	get fullPerc() {
@@ -260,7 +276,6 @@ export class TrueBucketObject extends ObjectGroup {
 
 	customUpdate(_dt) {
 		this.fullPerc -= this.#leakSpeed * _dt;
-		// if (this.angle > Math.PI * 0.5 && this.angle < Math.PI * 1.5) this.fullPerc -= 0.5 * _dt;
 
 		if (this.position.y > 17) return;
 		this.fullPerc += this.#fillSpeed * _dt;
@@ -278,8 +293,6 @@ export class BucketWallObject extends Object {
 		this.addDynamic(GravityDynamic);
 	}
 }
-
-
 
 
 export class BucketWaterObject extends Object {
@@ -314,34 +327,6 @@ export class BucketWaterObject extends Object {
 
 
 
-
-export class WheelObject extends Object {
-	constructor({position, radius}) {
-		super(new CircleGeometry(radius), new ArmMaterial);
-		this.position = position;
-		
-		this.addRotationPin(new Vector2D(0, 0));
-
-		this.addDynamic(GravityDynamic);
-		// this.addDynamic(RotFrictionDynamic);
-		// this.addDynamic(BottomWorldBoundDynamic);
-	}
-}
-
-export class BucketObject extends Object {
-	constructor({position, size, angle = 0}) {
-		super(new RectangleGeometry(size), new BucketMaterial);
-		this.position = position;
-		this.angle = angle;
-		
-		// this.centreOfRotation = new Vector2D(size.x / 2, 0);
-		// this.addRotationPin(new Vector2D(0, 0));
-
-		this.addDynamic(GravityDynamic);
-		this.addDynamic(TransFrictionDynamic);
-		this.addDynamic(RotFrictionDynamic);
-	}
-}
 
 export class ArmObject extends Object {
 	constructor({position, size, angle = 0}) {

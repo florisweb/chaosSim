@@ -2,7 +2,7 @@ import { Vector2D } from './vector.js';
 
 export class Dynamic {
 	_object;
-	order = 0; // Higher is later
+	order = 0; // The order describes when the dynamic is applied in the evaluation chain, with higher order being later
 	constructor(_object) {
 		this._object = _object
 	}
@@ -16,12 +16,9 @@ export class GravityDynamic extends Dynamic {
 	static g = 9.81; // m/s^2
 	
 	applyForce(_dt) {
-		let mass = this._object.mass;
-
-		// this._object.applyForce(this._object.geometry.relativeCentreOfMass.copy().rotate(this._object.angle), new Vector2D(0, 1).scale(mass * GravityDynamic.g));
 		this._object.applyForce(
 			this._object.geometry.relativeCentreOfMass, 
-			new Vector2D(0, 1).scale(mass * GravityDynamic.g)
+			new Vector2D(0, 1).scale(this._object.mass * GravityDynamic.g)
 		);
 	}
 }
@@ -68,8 +65,12 @@ export class WorldBoundDynamic extends Dynamic {
 
 
 export class TransFrictionDynamic extends Dynamic {
-	// scalar = .1;
 	scalar = .02;
+	constructor(_object, _scalar) {
+		super(_object);
+		if (_scalar) this.scalar = _scalar;
+	}
+
 	applyForce(_dt, _simulation) {
 		this._object.applyForce(this._object.centreOfRotation, this._object.velocity.copy().scale(-this.scalar * this._object.mass));
 	}
@@ -77,6 +78,11 @@ export class TransFrictionDynamic extends Dynamic {
 
 export class RotFrictionDynamic extends Dynamic {
 	scalar = .1;
+	constructor(_object, _scalar) {
+		super(_object);
+		if (_scalar) this.scalar = _scalar;
+	}
+	
 	applyForce(_dt, _simulation) {
 		this._object.netTorque += this._object.angularVelocity * -this.scalar * this._object.inertia;
 	}

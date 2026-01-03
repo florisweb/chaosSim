@@ -1,6 +1,5 @@
 import { Vector3D, Vector2D } from './vector.js';
 import { SpringConnector } from './connectors.js';
-import { ArmObject, BucketObject, AnchorObject, WheelObject, TrueBucketObject } from './object.js';
 
 
 
@@ -19,7 +18,7 @@ export class Problem {
 
 
 
-
+import { BucketObject, WheelObject } from './object.js';
 export class ChaoticWaterWheelProblem extends Problem {
 	name = 'Chaotic water wheel';
 	constants = {
@@ -31,6 +30,11 @@ export class ChaoticWaterWheelProblem extends Problem {
 			count: 10,
 			size: new Vector2D(2, 2),
 			wallThickness: 0.1
+		},
+		dynamics: {
+			transFrictionScalar: 0.1,
+			rotFrictionScalar: 0.1,
+			springConnStiffness: 1000
 		}
 	}
 	parameters = {
@@ -58,14 +62,17 @@ export class ChaoticWaterWheelProblem extends Problem {
 		{
 			let angle = b / this.constants.buckets.count * 2 * Math.PI;
 			let offset = new Vector2D(this.constants.wheel.radius, 0).rotate(angle);
-			let bucket = new TrueBucketObject({
+			
+			let bucket = new BucketObject({
 				position: this.constants.wheel.position.copy().add(offset).add(this.constants.buckets.size.copy().scale(-0.5)), 
 				size: this.constants.buckets.size, 
 				wallThickness: this.constants.buckets.wallThickness,
 				leakSpeed: this.parameters.leakSpeed,
 				fillSpeed: this.parameters.fillSpeed,
+				transFrictionScalar: this.constants.dynamics.transFrictionScalar,
+				rotFrictionScalar: this.constants.dynamics.rotFrictionScalar
 			});
-			wheel.connect(bucket, SpringConnector, offset, new Vector2D(this.constants.buckets.size.x / 2, 0));
+			wheel.connect(bucket, new SpringConnector({k: this.constants.dynamics.springConnStiffness}), offset, new Vector2D(this.constants.buckets.size.x / 2, 0));
 			simulation.objects.push(bucket);
 		}
 	}

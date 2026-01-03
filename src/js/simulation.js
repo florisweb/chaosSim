@@ -1,6 +1,5 @@
 import { Vector2D, Vector3D } from './vector.js';
 import App from './app.js';
-// import { GPU } from 'gpu.js';
 import { potentialTypes } from './potentials.js';
 
 

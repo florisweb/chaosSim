@@ -3,23 +3,27 @@ import { Dynamic } from './dynamics.js';
 
 
 class Connector {
-	order = 0; // Higher is later
-	constructor(_objA, _objB, _relConnPosA, _relConnPosB) {
+	bind(_objA, _objB, _relConnPosA, _relConnPosB) {
 		this._objA = _objA;
 		this._objB = _objB;
 		this._relConnPosA = _relConnPosA;
 		this._relConnPosB = _relConnPosB;
 	}
-
 }
 
 export class SpringConnector extends Connector {
 	dynamicA;
 	dynamicB;
-	constructor(_objA, _objB, _relConnPosA, _relConnPosB) {
+	#additionalConfig = {}
+	constructor(_additionalConfig = {}) {
 		super(...arguments)
-		this.dynamicA = new SpringDynamic(_objA, _objB, _relConnPosA, _relConnPosB);
-		this.dynamicB = new SpringDynamic(_objB, _objA, _relConnPosB, _relConnPosA);
+		this.#additionalConfig = _additionalConfig;
+	}
+
+	bind(_objA, _objB, _relConnPosA, _relConnPosB) {
+		super.bind(...arguments);
+		this.dynamicA = new SpringDynamic(_objA, _objB, _relConnPosA, _relConnPosB, this.#additionalConfig);
+		this.dynamicB = new SpringDynamic(_objB, _objA, _relConnPosB, _relConnPosA, this.#additionalConfig);
 		this.dynamicA.otherDynamic = this.dynamicB;
 		this.dynamicB.otherDynamic = this.dynamicA;
 	}
@@ -30,11 +34,12 @@ class SpringDynamic extends Dynamic {
 	otherDynamic;
 	k = 1000;
 
-	constructor(_object, _other, _relConnPosSelf, _relConnPosOther) {
+	constructor(_object, _other, _relConnPosSelf, _relConnPosOther, {k} = {}) {
 		super(_object);
 		this._other = _other
 		this.relConnPosSelf = _relConnPosSelf || this._object.centreOfRotation;
 		this.relConnPosOther = _relConnPosOther || this._other.centreOfRotation;
+		if (k) this.k = k;
 	}
 
 	delete(_initialCall = true) {
@@ -52,5 +57,4 @@ class SpringDynamic extends Dynamic {
 
 		this._object.applyForce(this.relConnPosSelf, force.copy());
 	}
-
 }
