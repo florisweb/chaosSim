@@ -196,19 +196,16 @@ export class PotentialTest2Problem extends Problem {
 	setup(simulation) {
 		let spacing = 3;
 		const count = 10;
+		const posVariation = 0;
+		const period = 0; //2 * 3.5;
 		for (let x = 0; x < count; x++)
 		{
 			for (let y = 0; y < count; y++)
 			{
-				let pos = new Vector2D(10 + x * spacing + Math.random(), 10 + y * spacing + Math.random());
-				simulation.objects.push(new LJParticle({position: pos, period: 2 * 3.5}))
+				let pos = new Vector2D(10 + x * spacing + Math.random() * posVariation, 10 + y * spacing + Math.random() * posVariation);
+				simulation.objects.push(new LJParticle({position: pos, period: period}))
 			}
 		}
-		
-
-		// simulation.objects.push(new LJParticle({position: new Vector2D(10, 10), period: 3}))
-		// simulation.objects.push(new LJParticle({position: new Vector2D(20, 10), period: 3, angle: 0.5 * Math.PI}))
-		// simulation.objects[1].velocity.x = -0.1;
 	}
 }
 

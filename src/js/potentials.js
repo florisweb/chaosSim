@@ -61,57 +61,20 @@ export class ChargePotential extends Potential {
 }
 
 
-// export class LJPotential extends Potential {
-// 	static isSymmetric = true;
-// 	static type = 'LJPot';
-
-// 	sigma = 1;
-// 	epsilon = 10;
-// 	constructor({relPos_objCoords, sigma}) {
-// 		super({relPos_objCoords});
-// 		this.sigma = sigma || 1;
-// 		this.maxDist = 3 * sigma;
-// 	}
-
-// 	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge
-// 		let delta = this.relPos.difference(_queryPos_obj);
-// 		let dist = delta.length;
-
-// 		// Todo: true equation
-// 		return 4 * this.epsilon * ((this.sigma / dist)**12 - (this.sigma / dist)**6)
-// 	}
-// 	calcForce(_queryPos_obj, _otherPot = {charge: 1}, _delta = false, _dist = false) {
-// 		let dist = _dist;
-// 		let delta = _delta;
-// 		if (!_delta) 
-// 		{
-// 			delta = this.relPos.difference(_queryPos_obj);
-// 			dist = delta.length;
-// 		}
-
-// 		let forceMagnitude = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7);
-
-// 		let force = delta.copy()
-// 		force.length = -forceMagnitude; // Force is -du/dx
-// 		return force;
-// 	}
-// }
-
-
 
 export class LJPeriodPotential extends Potential {
 	static isSymmetric = false;
 	static type = 'LJLikePot';
 
 	sigma = 1;
-	// epsilon = 10;
 	epsilon = 1;
 	period = 0;
+
 	constructor({relPos_objCoords, sigma, period}, _object) {
 		super({relPos_objCoords}, _object);
 		this.sigma = sigma || 1;
 		this.maxDist = 4 * sigma;
-		this.period = period ;
+		this.period = period;
 	}
 
 	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge
@@ -152,37 +115,12 @@ export class LJPeriodPotential extends Potential {
 }
 
 export class LJPotential extends LJPeriodPotential {
-	static isSymmetric = true;
+	static isSymmetric = false;
 	static type = 'LJPot';
 
-	sigma = 1;
 	epsilon = 10;
-	constructor({relPos_objCoords, sigma}) {
-		super({relPos_objCoords});
-		this.sigma = sigma || 1;
-		// this.maxDist = 4 * sigma;
-	}
-
-	calcPotential(_queryPos_obj) { // Assuming a positive (+1) query charge
-		let delta = this.relPos.difference(_queryPos_obj);
-		let dist = delta.length;
-
-		return 4 * this.epsilon * ((this.sigma / dist)**12 - (this.sigma / dist)**6);
-	}
-	calcForce(_queryPos_obj, _otherPot = {charge: 1}, _delta = false, _dist = false) {
-		let dist = _dist;
-		let delta = _delta;
-		if (!_delta) 
-		{
-			delta = this.relPos.difference(_queryPos_obj);
-			dist = delta.length;
-		}
-
-		let dudr = -4 * this.epsilon * (-12 * (this.sigma)**12 * dist**-13 + 6 * (this.sigma)**6*dist**-7);		
-
-		let force = delta.copy();
-		force.length = -dudr; // Force is -du/dr
-		return force;
+	constructor({relPos_objCoords, sigma}, _object) {
+		super({relPos_objCoords, sigma: sigma, period: 0}, _object);
 	}
 }
 
