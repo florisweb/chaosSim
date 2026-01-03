@@ -2,7 +2,7 @@ import { Vector2D, Vector3D } from './vector.js';
 import Simulation from './simulation.js';
 import Renderer from './renderer.js';
 import Recorder from './recorder.js';
-import { DipoleProblem, ChaoticWaterWheelProblem, BridgeProblem, DoublePendulumProblem, PotentialTestProblem, PotentialTest2Problem } from './problem.js';
+import { availableProblems } from './problem.js';
 
 import GraphPanel from './graphPanel.js';
 import SimulationPanel from './simulationPanel.js';
@@ -30,7 +30,7 @@ const App = new class {
 	constructor() {
 		window.App = this;
 
-		this.availableProblems = [new PotentialTest2Problem, new PotentialTestProblem,  new DipoleProblem, new ChaoticWaterWheelProblem, new BridgeProblem, new DoublePendulumProblem];
+		this.availableProblems = availableProblems;
 
 		let size = new Vector2D(50, 50);
 

@@ -407,13 +407,13 @@ export class ChargedParticle extends Object {
 }
 
 export class LJParticle extends Object {
-	constructor({position, period, angle}) {
+	constructor({position, period, epsilon, angle}) {
 		const radius = 0.5;
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
 		if (typeof angle === 'number') this.angle = angle;
-		this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}, this));
-		// this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2, period: period}, this));
+		// this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}, this));
+		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2, epsilon: epsilon, period: period}, this));
 		this.addDynamic(WorldBoundDynamic);
 		this.addDynamic(TransFrictionDynamic);
 		this.addDynamic(RotFrictionDynamic);

@@ -158,9 +158,6 @@ export class DoublePendulumProblem extends Problem {
 
 		simulation.objects.push(topPendulum);
 		simulation.objects.push(bottomPendulum);
-		
-
-		// prevPole.connect(rightPole, SpringConnector);
 	}
 }
 
@@ -168,8 +165,8 @@ export class DoublePendulumProblem extends Problem {
 
 import { ChargedParticle, LJParticle } from './object.js';
 
-export class PotentialTestProblem extends Problem {
-	name = 'Potential Test';
+export class ChargePotentialProblem extends Problem {
+	name = 'Charge Potential';
 	
 	constructor({parameters} = {}) {
 		super({parameters});
@@ -186,24 +183,37 @@ export class PotentialTestProblem extends Problem {
 }
 
 
-export class PotentialTest2Problem extends Problem {
-	name = 'Potential Test 2';
+export class CrystallizationProblem extends Problem {
+	name = 'Particle Crystal Formation';
 	
+	constants = {
+		grid: {
+			spacing: 3,
+			randomPositionVariation: 0,
+			size: new Vector2D(10, 10),
+		}
+	}
+
+	parameters = {
+		potential: {
+			period: 2 * 2,
+			epsilon: 1,
+		}
+	}
 	constructor({parameters} = {}) {
 		super({parameters});
 	}
 
 	setup(simulation) {
-		let spacing = 3;
-		const count = 10;
-		const posVariation = 0;
+		let spacing = this.constants.grid.spacing;
+		const posVariation = this.constants.grid.randomPositionVariation;
 		const period = 0; //2 * 3.5;
-		for (let x = 0; x < count; x++)
+		for (let x = 0; x < this.constants.grid.size.x; x++)
 		{
-			for (let y = 0; y < count; y++)
+			for (let y = 0; y < this.constants.grid.size.y; y++)
 			{
 				let pos = new Vector2D(10 + x * spacing + Math.random() * posVariation, 10 + y * spacing + Math.random() * posVariation);
-				simulation.objects.push(new LJParticle({position: pos, period: period}))
+				simulation.objects.push(new LJParticle({position: pos, period: this.parameters.potential.period, epsilon: this.parameters.potential.epsilon}))
 			}
 		}
 	}
@@ -220,13 +230,19 @@ export class DipoleProblem extends Problem {
 	}
 
 	setup(simulation) {
-		let part = new ChargedParticle({position: new Vector2D(10, 10), charge: -1});
 		let dipole1 = new ElecDipoleObject({position: new Vector2D(10, 20), size: new Vector2D(5, 1), angle: Math.PI});
 		let dipole2 = new ElecDipoleObject({position: new Vector2D(10, 15), size: new Vector2D(5, 1)});
 
-		// simulation.objects.push(part);
 		simulation.objects.push(dipole1);
 		simulation.objects.push(dipole2);
 	}
 }
+
+
+
+
+export const availableProblems = [new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
+
+
+
 
