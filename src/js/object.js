@@ -20,6 +20,8 @@ class Object {
 
 	centreOfRotation = new Vector2D(0, 0);
 
+	id = 0;
+
 	get mass() {
 		return this.geometry.area * this.material.density;
 	}
@@ -412,11 +414,13 @@ export class LJParticle extends Object {
 		super(new CircleGeometry(radius), new ArmMaterial);
 		this.position = position;
 		if (typeof angle === 'number') this.angle = angle;
-		// this.addPotential(new LJPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2}, this));
+
 		this.addPotential(new LJPeriodPotential({relPos_objCoords: this.centreOfRotation, sigma: radius * 2, epsilon: epsilon, period: period}, this));
 		this.addDynamic(WorldBoundDynamic);
 		this.addDynamic(TransFrictionDynamic);
 		this.addDynamic(RotFrictionDynamic);
+		// GravityDynamic.g = 0.001;
+		// this.addDynamic(GravityDynamic);
 	}
 }
 

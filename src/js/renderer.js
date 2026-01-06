@@ -193,6 +193,9 @@ export default class Renderer extends BaseObjectRenderer {
 			this.drawObject(object);
 		}
 
+		this.#renderVoronoiDiagram(_simulation.objects);
+
+
 		let potPxData;
 		if (_renderConfig.renderPotType) potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
 
@@ -320,7 +323,153 @@ export default class Renderer extends BaseObjectRenderer {
 		}
 	}
 
+
+
+	#renderVoronoiDiagram(_objects) {
+		
+		let lines = [];
+		for (let i = 0; i < _objects.length; i++)
+		{
+			for (let j = i + 1; j < _objects.length; j++)
+			{
+				lines.push(new VoronoiLine(_objects[i], _objects[j]));
+			}
+		}
+		// lines = lines.splice(0, 2);
+
+		for (let i = 0; i < lines.length; i++)
+		{
+			for (let j = i + 1; j < lines.length; j++)
+			{
+				let lineA = lines[i];
+				let lineB = lines[j];
+				if (!lineA.hasSharedObject(lineB)) continue; // Only lines with a shared point may intersect?
+				let nonSharedPointForLineA = lineA.getNonSharedObject(lineB).position.copy();
+				let nonSharedPointForLineB = lineB.getNonSharedObject(lineA).position.copy();
+				// console.warn('compare lines', lineA.id, lineB.id, 'nonSharedA:', lineA.getNonSharedObject(lineB).id, 'nonSharedB:', lineB.getNonSharedObject(lineA).id);
+
+				let delta12 = lineA.difference;
+				let delta34 = lineB.difference;
+
+				let intersectionValA = 
+					0.5 * (
+						delta34.x * (lineB.posA.x + lineB.posB.x - lineA.posA.x - lineA.posB.x) +
+						delta34.y * (lineB.posA.y + lineB.posB.y - lineA.posA.y - lineA.posB.y) 
+					) / (delta12.x * delta34.y - delta12.y * delta34.x);
+
+				let intersectionValB = 
+					0.5 * (
+						delta12.x * (lineB.posA.x + lineB.posB.x - lineA.posA.x - lineA.posB.x) +
+						delta12.y * (lineB.posA.y + lineB.posB.y - lineA.posA.y - lineA.posB.y) 
+					) / (delta12.x * delta34.y - delta12.y * delta34.x);
+
+
+				let relPosNonSharedPointA = nonSharedPointForLineA.subtract(lineA.centrePos);
+				let relPosNonSharedPointB = nonSharedPointForLineB.subtract(lineB.centrePos);
+
+				
+				let projectionA = relPosNonSharedPointA.dotProduct(lineA.direction);
+				if (projectionA < 0) 
+				{
+					lineA.minVal = Math.max(lineA.minVal, intersectionValA);
+					// console.log(lineA.id, 'shortened (min) by', lineA.getNonSharedObject(lineB).id)
+				} else {
+					lineA.maxVal = Math.min(lineA.maxVal, intersectionValA);
+					// console.log(lineA.id, 'shortened (max) by', lineA.getNonSharedObject(lineB).id)
+				}
+
+				let projectionB = relPosNonSharedPointB.dotProduct(lineB.direction);
+				if (projectionB < 0) 
+				{
+					lineB.minVal = Math.max(lineB.minVal, intersectionValB);
+					// console.log(lineB.id, 'shortened (min) by', lineB.getNonSharedObject(lineA).id);
+				} else {
+					lineB.maxVal = Math.min(lineB.maxVal, intersectionValB);
+					// console.log(lineB.id, 'shortened (max) by', lineB.getNonSharedObject(lineA).id);
+				}
+
+
+				// TODO: check whether the line is valid: A | B | C problem -> must have shared object?
+			}
+		}
+
+
+		for (let line of lines) line.draw(this);
+	}
 }
+
+class VoronoiLine {
+	objA;
+	objB;
+	get id() {
+		return this.objA.id + ' - ' + this.objB.id;
+	}
+	minVal = -10;
+	maxVal = 10;
+	junctionValues = new Set();
+
+	hasSharedObject(_otherLine) {
+		return this.objA === _otherLine.objA || this.objA === _otherLine.objB || this.objB === _otherLine.objA || this.objB === _otherLine.objB;
+	}
+	getNonSharedObject(_otherLine) { // Assuming a shared point
+		if (this.objA === _otherLine.objA || this.objB === _otherLine.objA) return _otherLine.objB;
+		return _otherLine.objA;
+	}
+
+	get posA() {
+		return this.objA.position;
+	}
+	get posB() {
+		return this.objB.position;
+	}
+	get centrePos() { 
+		return this.posA.copy().scale(0.5).add(this.posB.copy().scale(0.5));
+	}
+
+
+	get difference() {
+		return this.posA.difference(this.posB);
+	}
+	get direction() {
+		return this.difference.perpendicular;
+	}
+
+	constructor(_objA, _objB) {
+		this.objA = _objA;
+		this.objB = _objB;
+	}
+
+	getPosByVal(_lambda) {
+		return this.centrePos.add(this.direction.copy().scale(_lambda));
+	}
+
+	draw(_drawer) {
+		let startPos = this.getPosByVal(this.minVal).multiply(_drawer.scalar);
+		let endPos = this.getPosByVal(this.maxVal).multiply(_drawer.scalar);
+		_drawer.ctx.strokeStyle = '#f00';
+		_drawer.ctx.beginPath();
+		_drawer.ctx.moveTo(startPos.x, startPos.y);
+		_drawer.ctx.lineTo(endPos.x, endPos.y);
+		_drawer.ctx.closePath();
+		_drawer.ctx.stroke();
+
+
+		for (let j of this.junctionValues)
+		{
+			let pos = this.getPosByVal(j).multiply(_drawer.scalar);
+			_drawer.ctx.strokeStyle = '#0f0';
+			_drawer.ctx.beginPath();
+			_drawer.ctx.moveTo(pos.x, pos.y);
+			_drawer.ctx.lineTo(pos.x, pos.y - 30);
+			_drawer.ctx.closePath();
+			_drawer.ctx.stroke();
+		}
+	}
+}
+
+
+
+
 
 
 

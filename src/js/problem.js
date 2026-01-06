@@ -196,7 +196,7 @@ export class CrystallizationProblem extends Problem {
 
 	parameters = {
 		potential: {
-			period: 2 * 2,
+			period: 2 * 3,
 			epsilon: 1,
 		}
 	}
@@ -241,7 +241,32 @@ export class DipoleProblem extends Problem {
 
 
 
-export const availableProblems = [new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
+
+
+
+export class VoronoiProblem extends Problem {
+	name = 'Voronoi render test';
+	
+	constructor({parameters} = {}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		let particleA = new AnchorNodeObject({position: new Vector2D(10, 20)});
+		particleA.id = 'topLeft';
+		let particleB = new AnchorNodeObject({position: new Vector2D(10, 30)});
+		particleB.id = 'bottomLeft';
+		let particleC = new AnchorNodeObject({position: new Vector2D(30, 24)});
+		particleC.id = 'right';
+		simulation.objects.push(particleA);
+		simulation.objects.push(particleB);
+		simulation.objects.push(particleC);
+	}
+}
+
+
+
+export const availableProblems = [new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
 
 
 
