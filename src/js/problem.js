@@ -311,6 +311,7 @@ export class AuxeticMaterialProblem extends Problem {
 	name = 'Auxetic Material';
 	
 	constants = {
+		systemOffset: new Vector2D(10, 10),
 		cubeSize: new Vector2D(1, 1),
 		grid: {
 			spacing: 1,
@@ -321,8 +322,24 @@ export class AuxeticMaterialProblem extends Problem {
 	parameters = {
 		springStrength: 100,
 		pullerBlockDensity: 0.1,
-		connPointInMiddle: true,
+		connPointInMiddle: false,
 	}
+
+	recordables = [
+		{
+			name: 'Ey',
+			get: (_simulation) => (_simulation.objects[0].position.y - (this.constants.systemOffset.y + this.constants.grid.size.y * this.constants.grid.spacing)) / (this.constants.grid.size.y * this.constants.grid.spacing),
+		},
+		{
+			name: 'Ex',
+			get: (_simulation) => (_simulation.objects[1 + this.constants.grid.size.x * Math.round(this.constants.grid.size.y / 2)].position.x - this.constants.systemOffset.x) * -2 / (this.constants.grid.size.x * this.constants.grid.spacing),
+		},
+		{
+			name: 'Poisson\'s ratio',
+			get: (_simulation) => -(_simulation.objects[1 + this.constants.grid.size.x * Math.round(this.constants.grid.size.y / 2)].position.x - this.constants.systemOffset.x) * -2 / (this.constants.grid.size.x * this.constants.grid.spacing) / ((_simulation.objects[0].position.y - (this.constants.systemOffset.y + this.constants.grid.size.y * this.constants.grid.spacing)) / (this.constants.grid.size.y * this.constants.grid.spacing)),
+		}
+	];
+
 
 	constructor({parameters} = {}) {
 		super({parameters});
@@ -330,10 +347,9 @@ export class AuxeticMaterialProblem extends Problem {
 
 	setup(simulation) {
 		let spacing = this.constants.grid.spacing;
-		const offset = new Vector2D(10, 10);
 
 		const pullerObject = new AuxeticPullerObject({
-			position: offset.copy().add(new Vector2D(0, this.constants.grid.size.y * this.constants.grid.spacing)), 
+			position: this.constants.systemOffset.copy().add(new Vector2D(0, this.constants.grid.size.y * this.constants.grid.spacing)), 
 			size: new Vector2D(this.constants.grid.size.copy().scale(this.constants.grid.spacing).x, 3),
 			density: this.parameters.pullerBlockDensity
 		});
@@ -346,7 +362,7 @@ export class AuxeticMaterialProblem extends Problem {
 			let prevXCube;
 			for (let x = 0; x < this.constants.grid.size.x; x++)
 			{
-				let pos = offset.copy().add(new Vector2D(x * this.constants.grid.spacing, y * this.constants.grid.spacing));
+				let pos = this.constants.systemOffset.copy().add(new Vector2D(x * this.constants.grid.spacing, y * this.constants.grid.spacing));
 				let cube = new AuxeticCubeObject({position: pos, size: this.constants.cubeSize, fixed: y === 0})
 				simulation.objects.push(cube);
 
@@ -385,15 +401,6 @@ export class AuxeticMaterialProblem extends Problem {
 				prevXCube = cube;
 			}
 		}
-
-		// for (let x = 0; x < this.constants.grid.size.x; x++)
-		// {
-		// 	for (let y = 0; y < this.constants.grid.size.y; y++)
-		// 	{
-		// 		let pos = new Vector2D(10 + x * spacing + Math.random() * posVariation, 10 + y * spacing + Math.random() * posVariation);
-		// 		simulation.objects.push(new LJParticle({position: pos, period: this.parameters.potential.period, epsilon: this.parameters.potential.epsilon}))
-		// 	}
-		// }
 	}
 }
 
