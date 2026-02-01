@@ -25,3 +25,12 @@ export class WaterMaterial extends Material {
 	color = '#00f';
 	density = 2;
 } 
+
+export class CustomDensityMaterial extends Material {
+	color = '#f50';
+	density = 0.1;
+	constructor({density} = {}) {
+		super();
+		this.density = density;
+	}
+} 

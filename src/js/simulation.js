@@ -81,8 +81,13 @@ export default class Simulation {
 		let dt = Math.min(trueDt, this.config.maxDt);
 		dt = this.config.maxDt; // If this varies the simulation becomes unreliable (for chaotic systems at least)
 		
-		for (let i = 0; i < this.#speed; i++)
-			this.#runSingleUpdate(dt);
+		if (this.#speed < 1)
+		{
+			this.#runSingleUpdate(dt * this.#speed);
+		} else {
+			for (let i = 0; i < this.#speed; i++)
+				this.#runSingleUpdate(dt);
+		}
 
 		this.#lastUpdate = new Date();
 

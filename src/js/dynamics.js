@@ -13,12 +13,17 @@ export class Dynamic {
 
 
 export class GravityDynamic extends Dynamic {
-	static g = 9.81; // m/s^2
+	g = 9.81 // m/s^2
+
+	constructor(_object, {g} = {}) {
+		super(_object);
+		if (g) this.g = g;
+	}
 	
 	applyForce(_dt) {
 		this._object.applyForce(
 			this._object.geometry.relativeCentreOfMass, 
-			new Vector2D(0, 1).scale(this._object.mass * GravityDynamic.g)
+			new Vector2D(0, 1).scale(this._object.mass * this.g)
 		);
 	}
 }

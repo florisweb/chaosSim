@@ -42,13 +42,13 @@ export default class SimulationPanel extends Panel {
 			this.#simulation.setSpeed(0);
 			this.HTML.startStopButton.setAttribute('runState', '0');
 		} else {
-			this.#simulation.setSpeed(parseInt(this.HTML.speedSelect.value));
+			this.#simulation.setSpeed(parseFloat(this.HTML.speedSelect.value));
 			this.HTML.startStopButton.setAttribute('runState', '1');
 		}
 	}
 
 	#onSpeedChange() {
-		let newSpeed = parseInt(this.HTML.speedSelect.value);
+		let newSpeed = parseFloat(this.HTML.speedSelect.value);
 		setTextToElement(this.HTML.speedIndicator, newSpeed + 'x');
 		if (!this.#simulation.running) return;
 		this.#simulation.setSpeed(newSpeed);

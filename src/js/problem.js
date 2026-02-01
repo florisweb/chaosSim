@@ -173,12 +173,27 @@ export class ChargePotentialProblem extends Problem {
 	}
 
 	setup(simulation) {
-		let particleA = new ChargedParticle({position: new Vector2D(10, 20), charge: -1});
-		let particleB = new ChargedParticle({position: new Vector2D(10, 30), charge: 1});
-		let particleC = new ChargedParticle({position: new Vector2D(19, 24), charge: -1});
-		simulation.objects.push(particleA);
-		simulation.objects.push(particleB);
-		simulation.objects.push(particleC);
+		// let particleA = new ChargedParticle({position: new Vector2D(10, 20), charge: -1});
+		// let particleB = new ChargedParticle({position: new Vector2D(10, 30), charge: 1});
+		// let particleC = new ChargedParticle({position: new Vector2D(19, 24), charge: -1});
+		// simulation.objects.push(particleA);
+		// simulation.objects.push(particleB);
+		// simulation.objects.push(particleC);
+
+		const minDist = 3;
+		let posses = [];
+		for (let i = 0; i < 4; i++)
+		{
+			let pos = new Vector2D(50, 50).multiply(new Vector2D(Math.random(), Math.random()));
+			while (Math.min(...posses.map(p => p.difference(pos).length)) < minDist)
+			{
+				pos = new Vector2D(50, 50).multiply(new Vector2D(Math.random(), Math.random()));
+			}
+			posses.push(pos);
+		}
+
+		
+		simulation.objects = posses.map(p => new ChargedParticle({position: p, charge: Math.random() > 0.5 ? 1 : -1}))
 	}
 }
 
@@ -252,21 +267,137 @@ export class VoronoiProblem extends Problem {
 	}
 
 	setup(simulation) {
+		// let particleA = new AnchorNodeObject({position: new Vector2D(10, 20)});
+		// particleA.id = 'topLeft';
+		// let particleB = new AnchorNodeObject({position: new Vector2D(10, 30)});
+		// particleB.id = 'bottomLeft';
+		// let particleC = new AnchorNodeObject({position: new Vector2D(20, 14)});
+		// particleC.id = 'topRight';
+		// let particleD = new AnchorNodeObject({position: new Vector2D(30, 34)});
+		// particleD.id = 'bottomRight';
+		// simulation.objects.push(particleA);
+		// simulation.objects.push(particleB);
+		// simulation.objects.push(particleC);
+		// simulation.objects.push(particleD);
+
+
 		let particleA = new AnchorNodeObject({position: new Vector2D(10, 20)});
-		particleA.id = 'topLeft';
-		let particleB = new AnchorNodeObject({position: new Vector2D(10, 30)});
-		particleB.id = 'bottomLeft';
-		let particleC = new AnchorNodeObject({position: new Vector2D(30, 24)});
-		particleC.id = 'right';
+		particleA.id = 'A';
+		let particleD = new AnchorNodeObject({position: new Vector2D(5, 35)});
+		particleD.id = 'D';
+		let particleB = new AnchorNodeObject({position: new Vector2D(20, 20)});
+		// let particleB = new AnchorNodeObject({position: new Vector2D(16, 25)});
+		particleB.id = 'B';
+		let particleC = new AnchorNodeObject({position: new Vector2D(20, 30)});
+		particleC.id = 'C';
 		simulation.objects.push(particleA);
 		simulation.objects.push(particleB);
 		simulation.objects.push(particleC);
+		simulation.objects.push(particleD);
+
+		// for (let i = 0; i < 4; i++)
+		// {
+		// 	let pos = new Vector2D(50, 50).multiply(new Vector2D(Math.random(), Math.random()));
+		// 	let particle = new AnchorNodeObject({position: pos});
+		// 	simulation.objects.push(particle);
+		// }
+	}
+}
+
+
+import { AuxeticCubeObject, AuxeticPullerObject } from './object.js';
+export class AuxeticMaterialProblem extends Problem {
+	name = 'Auxetic Material';
+	
+	constants = {
+		cubeSize: new Vector2D(1, 1),
+		grid: {
+			spacing: 1,
+			size: new Vector2D(30, 20),
+		}
+	}
+
+	parameters = {
+		springStrength: 100,
+		pullerBlockDensity: 0.1
+	}
+
+	constructor({parameters} = {}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		let spacing = this.constants.grid.spacing;
+		const offset = new Vector2D(10, 10);
+
+		const pullerObject = new AuxeticPullerObject({
+			position: offset.copy().add(new Vector2D(0, this.constants.grid.size.y * this.constants.grid.spacing)), 
+			size: new Vector2D(this.constants.grid.size.copy().scale(this.constants.grid.spacing).x, 3),
+			density: this.parameters.pullerBlockDensity
+		});
+		simulation.objects.push(pullerObject);
+
+		let cubes = [];
+		for (let y = 0; y < this.constants.grid.size.y; y++)
+		{
+			cubes[y] = [];
+			let prevXCube;
+			for (let x = 0; x < this.constants.grid.size.x; x++)
+			{
+				let pos = offset.copy().add(new Vector2D(x * this.constants.grid.spacing, y * this.constants.grid.spacing));
+				let cube = new AuxeticCubeObject({position: pos, size: this.constants.cubeSize, fixed: y === 0})
+				simulation.objects.push(cube);
+
+				if (x > 0)
+				{
+					prevXCube.connect(
+						cube, 
+						new SpringConnector({k: this.parameters.springStrength}), 
+						new Vector2D(this.constants.cubeSize.x, x % 2 === y % 2 ? this.constants.cubeSize.y : 0), 
+						new Vector2D(0, x % 2 === y % 2 ? this.constants.cubeSize.y : 0)
+					);
+				}
+
+				if (y > 0)
+				{
+					let prevYCube = cubes[y - 1][x];
+					prevYCube.connect(
+						cube, 
+						new SpringConnector({k: this.parameters.springStrength}), 
+						new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, this.constants.cubeSize.y), 
+						new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, 0)
+					);
+				}
+				if (y === this.constants.grid.size.y - 1)
+				{
+					cube.connect(
+						pullerObject, 
+						new SpringConnector({k: this.parameters.springStrength}), 
+						new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, this.constants.cubeSize.y), 
+						new Vector2D(x * this.constants.grid.spacing + (y % 2 !== x % 2 ? this.constants.cubeSize.x : 0), 0)
+					);
+				}
+				
+
+				cubes[y][x] = cube;
+				prevXCube = cube;
+			}
+		}
+
+		// for (let x = 0; x < this.constants.grid.size.x; x++)
+		// {
+		// 	for (let y = 0; y < this.constants.grid.size.y; y++)
+		// 	{
+		// 		let pos = new Vector2D(10 + x * spacing + Math.random() * posVariation, 10 + y * spacing + Math.random() * posVariation);
+		// 		simulation.objects.push(new LJParticle({position: pos, period: this.parameters.potential.period, epsilon: this.parameters.potential.epsilon}))
+		// 	}
+		// }
 	}
 }
 
 
 
-export const availableProblems = [new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
+export const availableProblems = [new AuxeticMaterialProblem, new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
 
 
 

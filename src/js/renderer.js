@@ -193,7 +193,7 @@ export default class Renderer extends BaseObjectRenderer {
 			this.drawObject(object);
 		}
 
-		this.#renderVoronoiDiagram(_simulation.objects);
+		// this.#renderVoronoiDiagram(_simulation.objects);
 
 
 		let potPxData;
@@ -326,16 +326,19 @@ export default class Renderer extends BaseObjectRenderer {
 
 
 	#renderVoronoiDiagram(_objects) {
-		
+		for (let obj of _objects) obj.voronoiLines = [];
 		let lines = [];
 		for (let i = 0; i < _objects.length; i++)
 		{
 			for (let j = i + 1; j < _objects.length; j++)
-			{
-				lines.push(new VoronoiLine(_objects[i], _objects[j]));
+			{	
+				let line = new VoronoiLine(_objects[i], _objects[j]);
+				lines.push(line);
+				_objects[i].voronoiLines.push(line);
+				_objects[j].voronoiLines.push(line);
 			}
 		}
-		// lines = lines.splice(0, 2);
+
 
 		for (let i = 0; i < lines.length; i++)
 		{
@@ -343,27 +346,16 @@ export default class Renderer extends BaseObjectRenderer {
 			{
 				let lineA = lines[i];
 				let lineB = lines[j];
+				if ((lineA.slope - lineB.slope) % Math.PI === 0) continue;
 				if (!lineA.hasSharedObject(lineB)) continue; // Only lines with a shared point may intersect?
+
+
 				let nonSharedPointForLineA = lineA.getNonSharedObject(lineB).position.copy();
 				let nonSharedPointForLineB = lineB.getNonSharedObject(lineA).position.copy();
 				// console.warn('compare lines', lineA.id, lineB.id, 'nonSharedA:', lineA.getNonSharedObject(lineB).id, 'nonSharedB:', lineB.getNonSharedObject(lineA).id);
 
-				let delta12 = lineA.difference;
-				let delta34 = lineB.difference;
-
-				let intersectionValA = 
-					0.5 * (
-						delta34.x * (lineB.posA.x + lineB.posB.x - lineA.posA.x - lineA.posB.x) +
-						delta34.y * (lineB.posA.y + lineB.posB.y - lineA.posA.y - lineA.posB.y) 
-					) / (delta12.x * delta34.y - delta12.y * delta34.x);
-
-				let intersectionValB = 
-					0.5 * (
-						delta12.x * (lineB.posA.x + lineB.posB.x - lineA.posA.x - lineA.posB.x) +
-						delta12.y * (lineB.posA.y + lineB.posB.y - lineA.posA.y - lineA.posB.y) 
-					) / (delta12.x * delta34.y - delta12.y * delta34.x);
-
-
+				let [intersectionValA, intersectionValB] = lineA.calcIntersection(lineB);
+				
 				let relPosNonSharedPointA = nonSharedPointForLineA.subtract(lineA.centrePos);
 				let relPosNonSharedPointB = nonSharedPointForLineB.subtract(lineB.centrePos);
 
@@ -371,30 +363,76 @@ export default class Renderer extends BaseObjectRenderer {
 				let projectionA = relPosNonSharedPointA.dotProduct(lineA.direction);
 				if (projectionA < 0) 
 				{
-					lineA.minVal = Math.max(lineA.minVal, intersectionValA);
-					// console.log(lineA.id, 'shortened (min) by', lineA.getNonSharedObject(lineB).id)
+					lineA.addConstraint({
+						pos: intersectionValA, 
+						direction: -1 // The direction defines in which direction the line stops (so -1 means the end is at lower lambda)
+					});
+
 				} else {
-					lineA.maxVal = Math.min(lineA.maxVal, intersectionValA);
-					// console.log(lineA.id, 'shortened (max) by', lineA.getNonSharedObject(lineB).id)
+					lineA.addConstraint({
+						pos: intersectionValA, 
+						direction: 1
+					});
 				}
 
 				let projectionB = relPosNonSharedPointB.dotProduct(lineB.direction);
 				if (projectionB < 0) 
 				{
-					lineB.minVal = Math.max(lineB.minVal, intersectionValB);
-					// console.log(lineB.id, 'shortened (min) by', lineB.getNonSharedObject(lineA).id);
+					lineB.addConstraint({
+						pos: intersectionValB,
+						 direction: -1
+					});
 				} else {
-					lineB.maxVal = Math.min(lineB.maxVal, intersectionValB);
-					// console.log(lineB.id, 'shortened (max) by', lineB.getNonSharedObject(lineA).id);
+					lineB.addConstraint({
+						pos: intersectionValB, 
+						direction: 1
+					});
 				}
-
 
 				// TODO: check whether the line is valid: A | B | C problem -> must have shared object?
 			}
 		}
+		for (let line of lines) line.calculateSegments();
+		// console.log(lines, lines.map(l => [l.id, l.direction]));
+		console.log(lines, lines.map(l => l.id + ' [' + l.objA.id + ' | ' + l.objB.id + ']'));
+		for (let line of lines) {
+			if (!line.shouldBeDrawn()) continue;
+			line.draw(this);
+		}
+	}
+}
 
+class Line {
+	posA;
+	posB;
+	constructor(posA, posB) {
+		this.posA = posA;
+		this.posB = posb;
+	}
+	get difference() {
+		return this.posA.difference(this.posB);
+	}
+	get direction() {
+		return this.difference.perpendicular;
+	}
 
-		for (let line of lines) line.draw(this);
+	calcIntersection(lineB) {
+		const lineA = this;
+		let delta12 = lineA.difference;
+		let delta34 = lineB.difference;
+
+		let intersectionValA = 
+			0.5 * (
+				delta34.x * (lineB.posA.x + lineB.posB.x - lineA.posA.x - lineA.posB.x) +
+				delta34.y * (lineB.posA.y + lineB.posB.y - lineA.posA.y - lineA.posB.y) 
+			) / (delta12.x * delta34.y - delta12.y * delta34.x);
+
+		let intersectionValB = 
+			0.5 * (
+				delta12.x * (lineB.posA.x + lineB.posB.x - lineA.posA.x - lineA.posB.x) +
+				delta12.y * (lineB.posA.y + lineB.posB.y - lineA.posA.y - lineA.posB.y) 
+			) / (delta12.x * delta34.y - delta12.y * delta34.x);
+		return [intersectionValA, intersectionValB];
 	}
 }
 
@@ -404,9 +442,63 @@ class VoronoiLine {
 	get id() {
 		return this.objA.id + ' - ' + this.objB.id;
 	}
-	minVal = -10;
-	maxVal = 10;
-	junctionValues = new Set();
+	minVal = -100;
+	maxVal = 100;
+	constraints = [];
+	segments = [];
+	addConstraint(_constraint) {
+		if (this.constraints.map(c => c.pos + '' + c.direction).includes(_constraint.pos + '' + _constraint.direction)) return; // Prevent duplicates
+		this.constraints.push(_constraint);
+	}
+
+	shouldBeDrawn() {
+		if (this.segments.length <= 1) return true;;
+
+		for (let line of this.objA.voronoiLines)
+		{
+			// let compareLine = 
+			
+		}
+
+
+		return true;
+	}
+
+
+
+	calculateSegments() {
+		const extrama = 100;
+		let segments = [];
+		let curSegment = [-extrama];
+
+		
+		this.constraints.sort((a, b) => a.pos > b.pos);
+		// console.log(this.id, this.constraints);
+
+
+		for (let i = 0; i < this.constraints.length; i++)
+		{
+			if (this.constraints[i].direction === -1)
+			{
+				curSegment = [this.constraints[i].pos];
+			} else {
+				curSegment[1] = this.constraints[i].pos;
+				segments.push(curSegment);
+				curSegment = [];
+			}
+			
+		}
+
+
+		if (!this.constraints[this.constraints.length - 1] || this.constraints[this.constraints.length - 1].direction === -1)
+		{
+			curSegment.push(extrama);
+			segments.push(curSegment);
+		}
+
+		// console.log(this.id, segments);
+		this.segments = segments;
+	}
 
 	hasSharedObject(_otherLine) {
 		return this.objA === _otherLine.objA || this.objA === _otherLine.objB || this.objB === _otherLine.objA || this.objB === _otherLine.objB;
@@ -433,6 +525,10 @@ class VoronoiLine {
 	get direction() {
 		return this.difference.perpendicular;
 	}
+	get slope() {
+		return this.direction.angle;
+		// this.direction.y / this.direction.x; 
+	}
 
 	constructor(_objA, _objB) {
 		this.objA = _objA;
@@ -443,21 +539,42 @@ class VoronoiLine {
 		return this.centrePos.add(this.direction.copy().scale(_lambda));
 	}
 
+	
+
+
 	draw(_drawer) {
-		let startPos = this.getPosByVal(this.minVal).multiply(_drawer.scalar);
-		let endPos = this.getPosByVal(this.maxVal).multiply(_drawer.scalar);
-		_drawer.ctx.strokeStyle = '#f00';
-		_drawer.ctx.beginPath();
-		_drawer.ctx.moveTo(startPos.x, startPos.y);
-		_drawer.ctx.lineTo(endPos.x, endPos.y);
-		_drawer.ctx.closePath();
-		_drawer.ctx.stroke();
-
-
-		for (let j of this.junctionValues)
+		for (let segment of this.segments)
 		{
-			let pos = this.getPosByVal(j).multiply(_drawer.scalar);
-			_drawer.ctx.strokeStyle = '#0f0';
+			if (window.x) {
+				let initialStartPos = this.getPosByVal(-100).multiply(_drawer.scalar);
+				let finalEndPos = this.getPosByVal(100).multiply(_drawer.scalar);
+				_drawer.ctx.strokeStyle = 'rgba(255, 0, 0, .1)';
+				_drawer.ctx.beginPath();
+				_drawer.ctx.moveTo(finalEndPos.x, finalEndPos.y);
+				_drawer.ctx.lineTo(initialStartPos.x, initialStartPos.y);
+				_drawer.ctx.closePath();
+				_drawer.ctx.stroke();
+			}
+
+			let startPos = this.getPosByVal(segment[0]).multiply(_drawer.scalar);
+			let endPos = this.getPosByVal(segment[1]).multiply(_drawer.scalar);
+			_drawer.ctx.strokeStyle = '#00f';
+			_drawer.ctx.beginPath();
+			_drawer.ctx.moveTo(startPos.x, startPos.y);
+			_drawer.ctx.lineTo(endPos.x, endPos.y);
+			_drawer.ctx.closePath();
+			_drawer.ctx.stroke();
+		}
+
+
+
+		
+		if (!window.x) return;
+
+		for (let j of this.constraints)
+		{
+			let pos = this.getPosByVal(j.pos + 0.03).multiply(_drawer.scalar);
+			_drawer.ctx.strokeStyle = j.direction === 1 ? '#0f0' : '#f00';
 			_drawer.ctx.beginPath();
 			_drawer.ctx.moveTo(pos.x, pos.y);
 			_drawer.ctx.lineTo(pos.x, pos.y - 30);
