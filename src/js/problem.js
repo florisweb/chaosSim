@@ -306,6 +306,7 @@ export class VoronoiProblem extends Problem {
 
 
 import { AuxeticCubeObject, AuxeticPullerObject } from './object.js';
+import { ConstLenSpringConnector } from './connectors.js';
 export class AuxeticMaterialProblem extends Problem {
 	name = 'Auxetic Material';
 	
@@ -319,7 +320,8 @@ export class AuxeticMaterialProblem extends Problem {
 
 	parameters = {
 		springStrength: 100,
-		pullerBlockDensity: 0.1
+		pullerBlockDensity: 0.1,
+		connPointInMiddle: true,
 	}
 
 	constructor({parameters} = {}) {
@@ -352,9 +354,9 @@ export class AuxeticMaterialProblem extends Problem {
 				{
 					prevXCube.connect(
 						cube, 
-						new SpringConnector({k: this.parameters.springStrength}), 
-						new Vector2D(this.constants.cubeSize.x, x % 2 === y % 2 ? this.constants.cubeSize.y : 0), 
-						new Vector2D(0, x % 2 === y % 2 ? this.constants.cubeSize.y : 0)
+					 	new ConstLenSpringConnector({k: this.parameters.springStrength}), 
+						this.parameters.connPointInMiddle ? this.constants.cubeSize.copy().scale(0.5) : new Vector2D(this.constants.cubeSize.x, x % 2 === y % 2 ? this.constants.cubeSize.y : 0), 
+						this.parameters.connPointInMiddle ? this.constants.cubeSize.copy().scale(0.5) : new Vector2D(0, x % 2 === y % 2 ? this.constants.cubeSize.y : 0)
 					);
 				}
 
@@ -363,18 +365,18 @@ export class AuxeticMaterialProblem extends Problem {
 					let prevYCube = cubes[y - 1][x];
 					prevYCube.connect(
 						cube, 
-						new SpringConnector({k: this.parameters.springStrength}), 
-						new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, this.constants.cubeSize.y), 
-						new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, 0)
+						new ConstLenSpringConnector({k: this.parameters.springStrength}), 
+						this.parameters.connPointInMiddle ? this.constants.cubeSize.copy().scale(0.5) : new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, this.constants.cubeSize.y), 
+						this.parameters.connPointInMiddle ? this.constants.cubeSize.copy().scale(0.5) : new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, 0)
 					);
 				}
 				if (y === this.constants.grid.size.y - 1)
 				{
 					cube.connect(
 						pullerObject, 
-						new SpringConnector({k: this.parameters.springStrength}), 
-						new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, this.constants.cubeSize.y), 
-						new Vector2D(x * this.constants.grid.spacing + (y % 2 !== x % 2 ? this.constants.cubeSize.x : 0), 0)
+						new ConstLenSpringConnector({k: this.parameters.springStrength}), 
+						this.parameters.connPointInMiddle ? this.constants.cubeSize.copy().scale(0.5) : new Vector2D(y % 2 !== x % 2 ? this.constants.cubeSize.x : 0, this.constants.cubeSize.y), 
+						new Vector2D(x * this.constants.grid.spacing + (this.parameters.connPointInMiddle ? this.constants.cubeSize.x/2 : (y % 2 !== x % 2 ? this.constants.cubeSize.x : 0)), 0)
 					);
 				}
 				

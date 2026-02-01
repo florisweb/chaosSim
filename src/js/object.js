@@ -446,9 +446,7 @@ export class ElecDipoleObject extends Object {
 
 
 
-
 import { CustomDensityMaterial } from './material.js';
-
 
 export class AuxeticCubeObject extends Object {
 	constructor({position, size, fixed = false}) {
@@ -456,6 +454,7 @@ export class AuxeticCubeObject extends Object {
 		this.position = position;
 		
 		this.addDynamic(RotFrictionDynamic);
+		this.addDynamic(TransFrictionDynamic);
 		this.centreOfRotation = this.geometry.relativeCentreOfMass;
 		if (fixed) this.addRotationPin(new Vector2D(size.x/2, 0));
 	}

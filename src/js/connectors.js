@@ -29,17 +29,44 @@ export class SpringConnector extends Connector {
 	}
 }
 
+export class ConstLenSpringConnector extends Connector {
+	dynamicA;
+	dynamicB;
+	#additionalConfig = {}
+	constructor(_additionalConfig = {}) {
+		super(_additionalConfig)
+		this.#additionalConfig = _additionalConfig;
+	}
+
+	bind(_objA, _objB, _relConnPosA, _relConnPosB) {
+		super.bind(...arguments);
+		let ownPos = _objA.objectCoordToWorldCoord(_relConnPosA);
+		let otherPos = _objB.objectCoordToWorldCoord(_relConnPosB);
+		let delta = ownPos.difference(otherPos);
+		const realLen = delta.length;
+		this.#additionalConfig.targetLength = realLen;
+
+		this.dynamicA = new SpringDynamic(_objA, _objB, _relConnPosA, _relConnPosB, this.#additionalConfig);
+		this.dynamicB = new SpringDynamic(_objB, _objA, _relConnPosB, _relConnPosA, this.#additionalConfig);
+		this.dynamicA.otherDynamic = this.dynamicB;
+		this.dynamicB.otherDynamic = this.dynamicA;
+	}
+}
+
+
 
 class SpringDynamic extends Dynamic {
 	otherDynamic;
 	k = 1000;
+	targetLength = 0;
 
-	constructor(_object, _other, _relConnPosSelf, _relConnPosOther, {k} = {}) {
+	constructor(_object, _other, _relConnPosSelf, _relConnPosOther, {k, targetLength} = {}) {
 		super(_object);
 		this._other = _other
 		this.relConnPosSelf = _relConnPosSelf || this._object.centreOfRotation;
 		this.relConnPosOther = _relConnPosOther || this._other.centreOfRotation;
 		if (k) this.k = k;
+		if (targetLength) this.targetLength = targetLength;
 	}
 
 	delete(_initialCall = true) {
@@ -53,6 +80,9 @@ class SpringDynamic extends Dynamic {
 
 
 		let delta = ownPos.difference(otherPos);
+		const realLen = delta.length;
+		const deltaLength = realLen - this.targetLength; // Difference from optimal state
+		delta.scale(deltaLength / (realLen + 1e-15));
 		let force = delta.copy().scale(this.k);
 
 		this._object.applyForce(this.relConnPosSelf, force.copy());
