@@ -30,8 +30,7 @@ class BaseRenderer {
 		    this.closePath();
 		}
 
-
-		window.onresize = () => this.onResize();
+		window.addEventListener('resize', () => this.onResize());
 		this.onResize();
 	}
 
@@ -69,8 +68,11 @@ class BaseRenderer {
 		}
 	}
 
-
 	draw() {}
+
+	unLoad() {
+		// Remove listeners
+	}
 }
 
 
@@ -188,6 +190,9 @@ export class Renderer extends BaseObjectRenderer {
 		}
 	}
 
+	unLoad() {
+		this.renderWorker.terminate();
+	}
 
 	async draw(_simulation, _renderConfig) {
 		// Write to pre-draw canvas
@@ -653,6 +658,11 @@ export class MandelbrotRenderer extends BaseRenderer {
 			type: 'setup',
 			data: this.workerConfig
 		});
+	}
+
+	unLoad() {
+		this.renderWorker.terminate();
+		// Remove listeners
 	}
 
 	

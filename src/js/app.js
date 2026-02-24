@@ -67,6 +67,7 @@ const App = new class {
 	}
 
 	loadProblem(_problem) {
+		if (this.renderer) this.renderer.unLoad();
 		this.renderer = new _problem.renderer({canvas: document.querySelector('#simulationCanvas'), viewSize: this.worldSize});
 
 		this.simulation.clear();
