@@ -57,10 +57,15 @@ export default class GraphPanel extends Panel {
 		    	y: 1
 		    },
 		    margin: {
-		    	b: 40,
+		    	b: 60,
 		    	l: 60,
 		    	r: 10,
 		    	t: 50,
+		    },
+		    xaxis: {
+		    	title: {
+		    		text: 'Time (s)'
+		    	}
 		    }
 		};
 		Plotly.newPlot(this.HTML.panel.id, this.#data, layout, {displayModeBar: false, displaylogo: false});
