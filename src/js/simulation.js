@@ -8,6 +8,7 @@ export default class Simulation {
 	world = [];
 	objects = [];
 	config = {
+		// maxDt: 0.05 // 0.02
 		maxDt: 0.02
 	}
 	#speed = 0;

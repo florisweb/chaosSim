@@ -1,6 +1,6 @@
 import { Vector2D, Vector3D } from './vector.js';
 import Simulation from './simulation.js';
-import Renderer from './renderer.js';
+import { Renderer, MandelbrotRenderer} from './renderer.js';
 import Recorder from './recorder.js';
 import { availableProblems } from './problem.js';
 
@@ -34,7 +34,7 @@ const App = new class {
 
 		let size = new Vector2D(50, 50);
 
-		this.renderer = new Renderer({canvas: document.querySelector('#simulationCanvas'), viewSize: size});
+		this.renderer = new MandelbrotRenderer({canvas: document.querySelector('#simulationCanvas'), viewSize: size});
 		this.simulation = new Simulation({size: size});
 		this.recorder = new Recorder({recordInterval: 2});
 		this.graphPanel = new GraphPanel({panel: document.querySelector('.UIPanel.graphPanel')});

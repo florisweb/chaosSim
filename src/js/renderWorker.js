@@ -10,20 +10,24 @@ const config = {
 let isSetUp = false;
 let potKernels = {};
 
+let fractalKernel;
+
 onmessage = (e) => {
 	let message = e.data;
 	const messageType = message.type;
+	let output;
 	switch (messageType)
 	{
 		case 'setup':
 			setup(message.data); 
+			console.log(config);
 
 		break;
 		case 'calcPotential': 
 			if (!isSetUp) return console.warn('RenderWorker: not setup yet.');
 			let kernel = potKernels[message.data.potType];
 			if (!kernel) return console.warn('RenderWorker: potential kernel of type ' + message.data.potType + ' not found.');
-			let output = new Uint8ClampedArray(
+			output = new Uint8ClampedArray(
 				kernel(
 					...message.data.parameters,
 					config.pxOutputSize,
@@ -36,6 +40,21 @@ onmessage = (e) => {
 				data: output,
 			});
 		break;
+		case 'calcFractal': 
+			if (!isSetUp) return console.warn('RenderWorker: not setup yet.');
+			output = new Uint8ClampedArray(
+				fractalKernel(
+					...message.data.parameters,
+					config.pxOutputSize,
+					config.viewSize,
+				)
+			);
+			postMessage({
+				type: 'fractalResult',
+				data: output,
+			});
+		break;
+
 		default: 
 			console.log('RenderWorker: Received unknown message from main thread', message);
 			break;
@@ -119,5 +138,51 @@ function setup(_config) {
 		let color = [r, 0, b, 125]
 	    return color[channel];
 	}).setOutput([config.pxOutputSize[0] * config.pxOutputSize[1] * 4]);
+
+
+
+	
+	
+	fractalKernel = gpu.createKernel(function(_zoom, _offsetX, _offsetY, _arrSize, _viewSize) {
+		// All position units in perc (0-1)
+		const channels = 4;
+		const steps = 100;
+		let index = this.thread.x;
+		let arrX = (index % (_arrSize[0] * channels)) / channels;
+		let arrY = Math.floor((index / channels - arrX) / _arrSize[1]);
+
+		let channel = index % channels;
+		let x = arrX / _arrSize[0];
+		let y = arrY / _arrSize[1];
+
+
+		// let c = [(x - percOffset[0]) * _viewSize[0] * _zoom, (y - percOffset[1]) * _viewSize[1] * _zoom]; // [real, imag]
+		let c = [(x - 0.5) * _zoom + _offsetX, (y - 0.5) * _zoom + _offsetY]; // [real, imag]
+		let z = c;
+
+		let color = [0, 0, 0, 255];
+		for (let i = 0; i < 100; i++)
+		{
+			let real = z[0] * z[0] - z[1] * z[1] + c[0];
+			z[1] = z[0] * z[1] + z[1] * z[0] + c[1];
+			z[0] = real;
+
+			if (Math.abs(z[0]) <= 2 && Math.abs(z[1]) <= 2) continue;
+			// if (Math.abs(z[0]) <= 1e10 && Math.abs(z[1]) <= 1e10) continue;
+			// let angle = Math.atan((c[1] - z[1])/(c[0] - z[0]));
+			// color = [Math.round(255 - angle / 2 * 255), Math.round(i/steps*255), Math.round(angle / 2 * 255), 255];
+			// let delta = Math.sqrt((z[0] - c[0]))
+			color = [Math.round(255 - i / steps * 255), 0, Math.round(i / steps * 255), 255];
+			break;
+		}
+		
+	    return color[channel];
+	}).setOutput([config.pxOutputSize[0] * config.pxOutputSize[1] * 4]);
+
+
+
+	
+	
+	
 
 }

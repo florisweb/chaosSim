@@ -46,9 +46,33 @@ class BaseRenderer {
 			this.size.y / this.viewSize.y // [use same scalar as x for non-squased graph]  // 
 		);
 	}
-	
+
+	// Better place to put the preDrawContext-func?
+	_createPreDrawContext() {
+		this.trueCtx = this.ctx;
+		this.preDrawCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
+
+		this.ctx = this.preDrawCanvas.getContext('2d');
+		this.ctx.constructor.prototype.circle = function(x, y, size) {
+		    if (size <= 0) return;
+		    this.beginPath();
+		    this.ellipse(
+		      x, 
+		      y, 
+		      size,
+		      size,
+		      0,
+		      0,
+		      2 * Math.PI
+		    );
+		    this.closePath();
+		}
+	}
+
+
 	draw() {}
 }
+
 
 export class BaseObjectRenderer extends BaseRenderer {
 	curObject;
@@ -135,7 +159,7 @@ export default class Renderer extends BaseObjectRenderer {
 	constructor({canvas, viewSize}) {
 		super(...arguments);
 
-		this.#createPreDrawContext();
+		this._createPreDrawContext();
 
 		this.renderWorker = new Worker(new URL("./renderWorker.js", import.meta.url));
 		this.renderWorker.onmessage = (e) => this.#handleWorkerMessage(e.data);
@@ -153,26 +177,6 @@ export default class Renderer extends BaseObjectRenderer {
 		});
 	}
 
-	#createPreDrawContext() {
-		this.trueCtx = this.ctx;
-		this.preDrawCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
-
-		this.ctx = this.preDrawCanvas.getContext('2d');
-		this.ctx.constructor.prototype.circle = function(x, y, size) {
-		    if (size <= 0) return;
-		    this.beginPath();
-		    this.ellipse(
-		      x, 
-		      y, 
-		      size,
-		      size,
-		      0,
-		      0,
-		      2 * Math.PI
-		    );
-		    this.closePath();
-		}
-	}
 	
 	#handleWorkerMessage(_message) {
 		switch (_message.type) 
@@ -195,9 +199,9 @@ export default class Renderer extends BaseObjectRenderer {
 
 		// this.#renderVoronoiDiagram(_simulation.objects);
 
-
 		let potPxData;
 		if (_renderConfig.renderPotType) potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
+		potPxData = await this.requestFractalRender();
 
 		// Write the pre-drawn data and the worker-rendered data to the true canvas
 		this.trueCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -223,7 +227,6 @@ export default class Renderer extends BaseObjectRenderer {
 
 
 	async requestPotentialOfTypeData(_objects, _potType) {
-
 		let parameters = [];
 		let potPosses = [];
 		let potAngles = [];
@@ -586,7 +589,104 @@ class VoronoiLine {
 
 
 
+export class MandelbrotRenderer extends BaseRenderer {
+	#potResulution = 1; // 2x2 'pixels' - must be integer
+	renderWorker;
+	workerConfig = {};
 
+	camera = new class {
+		zoom = 3;
+		position = new Vector2D(-0.5, 0);
+		scrollSpeed = 0.01;
+		maxZoom = 5;
+		minZoom = 1e-10;
+		dragSpeed = 0.003;
+	}
+
+	#workerRequest;
+	constructor({canvas, viewSize}) {
+		super(...arguments);
+
+		
+		canvas.addEventListener('wheel', (event) => {
+			this.camera.zoom *= Math.exp(event.deltaY * this.camera.scrollSpeed);
+			this.camera.zoom = Math.max(Math.min(this.camera.zoom, this.camera.maxZoom), this.camera.minZoom);
+		    return false; 
+		}, false);
+
+		let dragging = false;
+		let prevDragVector = false;
+		canvas.addEventListener("mousedown", () => dragging = true);
+	  	canvas.addEventListener("mouseup", stopDragging);
+		canvas.addEventListener("mousemove", 
+		    _event => {
+		    	if (!dragging) return;
+		    	if (prevDragVector)
+		    	{
+		    		let deltaPos = new Vector2D(_event.screenX, _event.screenY).difference(prevDragVector);
+		    		let moveVector = deltaPos.scale(this.camera.dragSpeed * this.camera.zoom);
+		    		this.camera.position.add(moveVector);
+		    	}
+
+		    	prevDragVector = new Vector2D(_event.screenX, _event.screenY);
+		    }
+		);
+		
+		function stopDragging() {
+			dragging = false;
+	      	prevDragVector = false;
+		}
+
+
+		this._createPreDrawContext();
+
+		this.renderWorker = new Worker(new URL("./renderWorker.js", import.meta.url));
+		this.renderWorker.onmessage = (e) => this.#handleWorkerMessage(e.data);
+
+		let scalar = this.scalar.scale(1 / this.#potResulution);
+		let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
+
+		this.workerConfig = {
+			pxOutputSize: kernelOutputSize.value,
+			viewSize: viewSize.value
+		}
+		this.renderWorker.postMessage({
+			type: 'setup',
+			data: this.workerConfig
+		});
+	}
+
+	
+	#handleWorkerMessage(_message) {
+		switch (_message.type) 
+		{
+			case "fractalResult":
+				const imgData = new ImageData(_message.data, this.workerConfig.pxOutputSize[0], this.workerConfig.pxOutputSize[1]);
+				this.#workerRequest.resolve(imgData);	
+			break;
+		}
+	}
+
+
+	async draw(_simulation, _renderConfig) {
+		let potPxData = await this.requestFractalRender();
+		this.trueCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.trueCtx.putImageData(potPxData, 0, 0);
+	}
+
+
+	async requestFractalRender() {
+		this.#workerRequest = Promise.withResolvers();
+		this.renderWorker.postMessage({
+			type: 'calcFractal',
+			data: {
+				parameters: [this.camera.zoom, ...this.camera.position.value]
+			}
+		});
+
+		return this.#workerRequest.promise;
+	}
+}
 
 
 
