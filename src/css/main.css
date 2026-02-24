@@ -12,6 +12,9 @@
 	--headerTextFontSize: 16px;
 
 }
+html {
+	overscroll-behavior-y: none;
+}
 
 body {
 	margin: 10px;

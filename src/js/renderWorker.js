@@ -19,9 +19,7 @@ onmessage = (e) => {
 	switch (messageType)
 	{
 		case 'setup':
-			setup(message.data); 
-			console.log(config);
-
+			setup(message.data);
 		break;
 		case 'calcPotential': 
 			if (!isSetUp) return console.warn('RenderWorker: not setup yet.');
@@ -168,10 +166,8 @@ function setup(_config) {
 			z[0] = real;
 
 			if (Math.abs(z[0]) <= 2 && Math.abs(z[1]) <= 2) continue;
-			// if (Math.abs(z[0]) <= 1e10 && Math.abs(z[1]) <= 1e10) continue;
-			// let angle = Math.atan((c[1] - z[1])/(c[0] - z[0]));
+			let angle = Math.atan((c[1] - z[1])/(c[0] - z[0]));
 			// color = [Math.round(255 - angle / 2 * 255), Math.round(i/steps*255), Math.round(angle / 2 * 255), 255];
-			// let delta = Math.sqrt((z[0] - c[0]))
 			color = [Math.round(255 - i / steps * 255), 0, Math.round(i / steps * 255), 255];
 			break;
 		}

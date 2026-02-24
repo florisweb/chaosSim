@@ -89,7 +89,7 @@ export class ProjectSelectionPage extends Page {
 		setTextToElement(el.children[2], this.#generateProblemDescriptionText(simulation));
 		el.addEventListener('click', () => App.simulationPage.open(_problem));
 		
-		this.#renderProblemPreview(el.children[0], simulation);
+		this.#renderProblemPreview(el.children[0], simulation, _problem);
 		return el;
 	}
 	#generateProblemDescriptionText(_simulation) {
@@ -100,9 +100,9 @@ export class ProjectSelectionPage extends Page {
 
 	}
 
-	#renderProblemPreview(_canvas, _simulation) {
+	#renderProblemPreview(_canvas, _simulation, _problem) {
 		wait(0).then(() => {
-			const renderer = new BaseObjectRenderer({canvas: _canvas, viewSize: _simulation.size});
+			const renderer = new _problem.renderer({canvas: _canvas, viewSize: _simulation.size});
 			renderer.draw(_simulation, {});
 		});
 	}

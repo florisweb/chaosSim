@@ -1,6 +1,6 @@
 import { Vector3D, Vector2D } from './vector.js';
 import { SpringConnector } from './connectors.js';
-
+import { Renderer } from './renderer.js';
 
 
 export class Problem {
@@ -8,6 +8,9 @@ export class Problem {
 	constants = {}
 	parameters = {}
 	recordables = [];
+	get renderer() {
+		return this.customRenderer || Renderer;
+	}
 
 	constructor({parameters}) {
 		this.parameters = {...this.parameters, ...parameters};
@@ -405,8 +408,21 @@ export class AuxeticMaterialProblem extends Problem {
 }
 
 
+import { MandelbrotRenderer} from './renderer.js';
+export class MandelbrotProblem extends Problem {
+	name = 'Mandelbrot set';
+	customRenderer = MandelbrotRenderer;
+	
+	constructor({parameters} = {}) {
+		super({parameters});
+	}
 
-export const availableProblems = [new AuxeticMaterialProblem, new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
+	setup(simulation) {}
+}
+
+
+
+export const availableProblems = [new MandelbrotProblem, new AuxeticMaterialProblem, new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
 
 
 

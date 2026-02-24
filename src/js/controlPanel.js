@@ -30,6 +30,7 @@ export default class ControlPanel extends Panel {
 
 
 		let potentialTypes = _simulation.potentialTypes;
+		if (!potentialTypes.length) return;
 		this.renderPotential(_simulation.objects[0].potentials[0]); // TODO
 	}
 

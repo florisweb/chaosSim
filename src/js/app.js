@@ -1,6 +1,6 @@
 import { Vector2D, Vector3D } from './vector.js';
 import Simulation from './simulation.js';
-import { Renderer, MandelbrotRenderer} from './renderer.js';
+import { Renderer, MandelbrotRenderer } from './renderer.js';
 import Recorder from './recorder.js';
 import { availableProblems } from './problem.js';
 
@@ -26,16 +26,14 @@ const App = new class {
 			renderPotType: ''
 		}
 	}
+	worldSize = new Vector2D(50, 50);
 
 	constructor() {
 		window.App = this;
 
 		this.availableProblems = availableProblems;
 
-		let size = new Vector2D(50, 50);
-
-		this.renderer = new MandelbrotRenderer({canvas: document.querySelector('#simulationCanvas'), viewSize: size});
-		this.simulation = new Simulation({size: size});
+		this.simulation = new Simulation({size: this.worldSize});
 		this.recorder = new Recorder({recordInterval: 2});
 		this.graphPanel = new GraphPanel({panel: document.querySelector('.UIPanel.graphPanel')});
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation, this);
@@ -69,6 +67,8 @@ const App = new class {
 	}
 
 	loadProblem(_problem) {
+		this.renderer = new _problem.renderer({canvas: document.querySelector('#simulationCanvas'), viewSize: this.worldSize});
+
 		this.simulation.clear();
 		this.recorder.clear();
 		this.graphPanel.clear();
@@ -89,15 +89,13 @@ const App = new class {
 	}
 
 
-
 	async draw() {
-		await this.renderer.draw(this.simulation, this.config.renderer);
+		if (this.renderer && this.simulationPage.isOpen) await this.renderer.draw(this.simulation, this.config.renderer);
 		requestAnimationFrame(() => this.draw());
 	}
 
 	async update() {
 		if (!this.problem) return;
-		// await this.renderer.draw(this.simulation, this.config.renderer);
 		
 		this.simulation.update();
 		this.simulationPanel.update(this.simulation);

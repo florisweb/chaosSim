@@ -150,7 +150,7 @@ export class BaseObjectRenderer extends BaseRenderer {
 }
 
 
-export default class Renderer extends BaseObjectRenderer {
+export class Renderer extends BaseObjectRenderer {
 	#potResulution = 1; // 2x2 'pixels' - must be integer
 	renderWorker;
 	workerConfig = {};
@@ -201,7 +201,6 @@ export default class Renderer extends BaseObjectRenderer {
 
 		let potPxData;
 		if (_renderConfig.renderPotType) potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
-		potPxData = await this.requestFractalRender();
 
 		// Write the pre-drawn data and the worker-rendered data to the true canvas
 		this.trueCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
