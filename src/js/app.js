@@ -87,6 +87,12 @@ const App = new class {
 		this.projectSelectionPage.open();
 		this.draw();
 		this.update();
+
+		if (window.location.hash)
+		{
+			let problem = this.availableProblems.find((p) => p.name === decodeURI(window.location.hash.substr(1)));
+			if (problem) this.simulationPage.open(problem);
+		}
 	}
 
 
