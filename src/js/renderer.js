@@ -202,8 +202,6 @@ export class Renderer extends BaseObjectRenderer {
 			this.drawObject(object);
 		}
 
-		// this.#renderVoronoiDiagram(_simulation.objects);
-
 		let potPxData;
 		if (_renderConfig.renderPotType) potPxData = await this.requestPotentialOfTypeData(_simulation.objects, _renderConfig.renderPotType);
 
@@ -329,8 +327,31 @@ export class Renderer extends BaseObjectRenderer {
 			}
 		}
 	}
+}
 
 
+
+export class VoronoiRenderer extends Renderer {
+	constructor({canvas, viewSize}) {
+		super(...arguments);
+	}
+
+	unLoad() {
+		// Remove listeners
+	}
+
+
+	async draw(_simulation, _renderConfig) {
+		// Write to pre-draw canvas
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		for (let object of _simulation.objects)
+		{
+			this.drawObject(object);
+		}
+
+		this.#renderVoronoiDiagram(_simulation.objects);
+	}
+	
 
 	#renderVoronoiDiagram(_objects) {
 		for (let obj of _objects) obj.voronoiLines = [];
@@ -590,6 +611,10 @@ class VoronoiLine {
 		}
 	}
 }
+
+
+
+
 
 
 

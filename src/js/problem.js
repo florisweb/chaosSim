@@ -260,10 +260,11 @@ export class DipoleProblem extends Problem {
 
 
 
-
+import { VoronoiRenderer } from './renderer.js';
 
 export class VoronoiProblem extends Problem {
 	name = 'Voronoi render test';
+	customRenderer = VoronoiRenderer;
 	
 	constructor({parameters} = {}) {
 		super({parameters});
