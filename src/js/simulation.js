@@ -256,38 +256,45 @@ export class Simulation extends BaseSimulation {
 export class ParticleSimulation extends BaseSimulation {
 
 	// Normalized from 0 - 1
-	particleDataArr; // [[x1, y1, vx1, vy1]...] 
+	particleVelPosDataArr = []; // [[x1, y1, vx1, vy1]...] 
+	particleConstDataArr = []; // [type1, type2]
 	updateOnGPU;
 
 	constructor() {
 		super(...arguments);
+		this.config.particleSize = 0.005;
 
 
-		this.particleDataArr = [];
 		// this.particleDataArr = [[0.2, 0.1, 0, 0], [0.1, 0.1, 0, 0]];
 		// this.particleDataArr = [[0.2, 0.1, 0.1, 0]];
 
-		for (let i = 0; i < 200; i++)
+		for (let i = 0; i < 500; i++)
 		{
-			this.particleDataArr.push([Math.random(), Math.random(), 0, 0]);
+			this.particleVelPosDataArr.push([Math.random(), Math.random(), 0, 0]);
+			this.particleConstDataArr.push([Math.random() < 0.5 ? 0 : 1]);
 		}
 
 
-		this.updateOnGPU = gpu.createKernel(function(_data, _arrSize, _dt) {
-
-			const frictionFactor = 0.01;
+		this.updateOnGPU = gpu.createKernel(function(_data, _metaData, _arrSize, _dt) {
+			const frictionFactor = 0.02;
 			const maxVelocity = 0.05;
+			const maxInteractionRangeSquared = 1**2;
 
 			const maxParticleCount = 1000;
-			// const sigma = 0.01; // Excluded size
-			const sigma = 0.01; // Excluded size
-			const epsilon = 0.005;
+			const sigma = 0.005 * 2; // Excluded size = 2 * particleRadius
+			const epsilonMatrix = [ // epsilonMatrix[ownType][otherType]
+				[0.005, 0.002],
+				[0.002, 0.005],
+			];
+
 
 			const index = this.thread.x;
 			const invMass = 0.1; // 1/m
 			let force = [0, 0];
 			const x = _data[index][0];
 			const y = _data[index][1];
+			const type = _metaData[index][0];
+			// if (type === 0) return [_data[index][0], _data[index][1], _data[index][2], _data[index][3]];
 
 			for (let i = 0; i < maxParticleCount; i++)
 			{
@@ -295,7 +302,10 @@ export class ParticleSimulation extends BaseSimulation {
 				const dx = _data[i][0] - x;
 				const dy = _data[i][1] - y;
 
-				const dist = Math.sqrt(dx**2 + dy**2);
+				const distSquared = dx**2 + dy**2;
+				if (distSquared > maxInteractionRangeSquared) continue;
+				const dist = Math.sqrt(distSquared);
+				const epsilon = epsilonMatrix[type][_metaData[i][0]];
 
 				// let forceMagnitude = 1 / dist * 0.0002; // Pure attractive
 
@@ -351,7 +361,7 @@ export class ParticleSimulation extends BaseSimulation {
 				newVelocity[0],
 				newVelocity[1]
 			];
-		}).setOutput([this.particleDataArr.length]);
+		}).setOutput([this.particleVelPosDataArr.length]);
 
 
 	}
@@ -360,7 +370,7 @@ export class ParticleSimulation extends BaseSimulation {
 	runSingleUpdate(_dt) {
 		super.runSingleUpdate(_dt);
 
-		this.particleDataArr = this.updateOnGPU(this.particleDataArr, this.particleDataArr.length, _dt);
+		this.particleVelPosDataArr = this.updateOnGPU(this.particleVelPosDataArr, this.particleConstDataArr, this.particleVelPosDataArr.length, _dt);
 	};	
 }
 

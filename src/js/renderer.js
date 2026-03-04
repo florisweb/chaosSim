@@ -740,16 +740,17 @@ export class ParticleSimRenderer extends BaseObjectRenderer {
 	async draw(_simulation, _renderConfig) {
 		// Write to pre-draw canvas
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		for (let i = 0; i < _simulation.particleDataArr.length; i++)
+		for (let i = 0; i < _simulation.particleVelPosDataArr.length; i++)
 		{
-			this.drawObject(_simulation.particleDataArr[i]);
+			this.drawObject(_simulation.particleVelPosDataArr[i], _simulation.particleConstDataArr[i], _simulation.config.particleSize);
 		}
 	}
 
 
-	drawObject([x, y, vx, vy]) {
-		this.ctx.fillStyle = '#f00';
-		this.ctx.circle(x * this.scalar.x * this.viewSize.x, y * this.scalar.y * this.viewSize.y, 10);
+	drawObject([x, y, vx, vy], [type], _particleSize) {
+		const colors = ['#f00', '#0f0', '#00f'];
+		this.ctx.fillStyle = colors[type];
+		this.ctx.circle(x * this.scalar.x * this.viewSize.x, y * this.scalar.y * this.viewSize.y, this.scalar.x * this.viewSize.x * _particleSize);
 		this.ctx.fill();
 	}
 	
