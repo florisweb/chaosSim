@@ -748,7 +748,7 @@ export class ParticleSimRenderer extends BaseObjectRenderer {
 
 
 	drawObject([x, y, vx, vy], [type], _particleSize) {
-		const colors = ['#f00', '#0f0', '#00f'];
+		const colors = ['#f00', '#c70', '#0f0', '#00f'];
 		this.ctx.fillStyle = colors[type];
 		this.ctx.circle(x * this.scalar.x * this.viewSize.x, y * this.scalar.y * this.viewSize.y, this.scalar.x * this.viewSize.x * _particleSize);
 		this.ctx.fill();

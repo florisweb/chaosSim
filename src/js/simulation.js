@@ -271,20 +271,26 @@ export class ParticleSimulation extends BaseSimulation {
 		for (let i = 0; i < 500; i++)
 		{
 			this.particleVelPosDataArr.push([Math.random(), Math.random(), 0, 0]);
-			this.particleConstDataArr.push([Math.random() < 0.5 ? 0 : 1]);
+			this.particleConstDataArr.push([Math.floor(Math.random() * 3)]);
 		}
 
-
+		// Change interactions to have the same shape when repelling as attracting - also make them longer ranged
 		this.updateOnGPU = gpu.createKernel(function(_data, _metaData, _arrSize, _dt) {
-			const frictionFactor = 0.02;
+			const frictionFactor = 0.05;
 			const maxVelocity = 0.05;
 			const maxInteractionRangeSquared = 1**2;
 
 			const maxParticleCount = 1000;
 			const sigma = 0.005 * 2; // Excluded size = 2 * particleRadius
 			const epsilonMatrix = [ // epsilonMatrix[ownType][otherType]
-				[0.005, 0.002],
-				[0.002, 0.005],
+				[0.005, 0.002, 0.0005],
+				[0.002, 0.005, 0.002],
+				[0.002, 0.002, 0.005],
+			];
+			const interactionModifiedMatrix = [
+				[1, 1, 1],
+				[1, 1, 1],
+				[-1, 1, 1],
 			];
 
 
@@ -299,20 +305,27 @@ export class ParticleSimulation extends BaseSimulation {
 			for (let i = 0; i < maxParticleCount; i++)
 			{
 				if (i === index || i >= _arrSize) continue;
-				const dx = _data[i][0] - x;
-				const dy = _data[i][1] - y;
+				let dx = _data[i][0] - x;
+				let dy = _data[i][1] - y;
+				if (dx > 0.5) {
+					dx = dx - 1;
+				} else if (dx < -0.5) dx = 1 + dx;
+				if (dy > 0.5) {
+					dy = dy - 1;
+				} else if (dy < -0.5) dy = 1 + dy;
 
 				const distSquared = dx**2 + dy**2;
 				if (distSquared > maxInteractionRangeSquared) continue;
 				const dist = Math.sqrt(distSquared);
 				const epsilon = epsilonMatrix[type][_metaData[i][0]];
+				const intModifier = interactionModifiedMatrix[type][_metaData[i][0]];
 
 				// let forceMagnitude = 1 / dist * 0.0002; // Pure attractive
 
 				// Leanards Jones
 				const rawForceMagnitude = 4 * epsilon * (
 					-12 * (sigma)**12 * dist**-13 
-					+ 6 * (sigma)**6*dist**-7
+					+ intModifier * 6 * (sigma)**6*dist**-7
 				);
 
 				const appliedScalar = Math.min(rawForceMagnitude / dist, 5);
