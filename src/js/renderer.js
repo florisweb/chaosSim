@@ -723,6 +723,39 @@ export class MandelbrotRenderer extends BaseRenderer {
 }
 
 
+export class ParticleSimRenderer extends BaseObjectRenderer {
+
+	
+
+	#workerRequest;
+	constructor({canvas, viewSize}) {
+		super(...arguments);
+	}
+
+	unLoad() {
+	}
+
+
+
+	async draw(_simulation, _renderConfig) {
+		// Write to pre-draw canvas
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		for (let i = 0; i < _simulation.particleDataArr.length; i++)
+		{
+			this.drawObject(_simulation.particleDataArr[i]);
+		}
+	}
+
+
+	drawObject([x, y, vx, vy]) {
+		this.ctx.fillStyle = '#f00';
+		this.ctx.circle(x * this.scalar.x * this.viewSize.x, y * this.scalar.y * this.viewSize.y, 10);
+		this.ctx.fill();
+	}
+	
+}
+
+
 
 
 export class PotentialRenderer extends BaseRenderer {

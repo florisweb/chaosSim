@@ -20,6 +20,8 @@ export default class ControlPanel extends Panel {
 	}
 
 	onProblemChange(_problem, _simulation) {
+		return;// FIXME
+
 		this.HTML.constantsContents.innerHTML = '';
 		let constObjects = this.#renderObject(_problem.constants);
 		for (let obj of constObjects) this.HTML.constantsContents.append(obj);

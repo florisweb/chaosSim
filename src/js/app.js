@@ -1,5 +1,5 @@
 import { Vector2D, Vector3D } from './vector.js';
-import Simulation from './simulation.js';
+import { Simulation, ParticleSimulation } from './simulation.js';
 import { Renderer, MandelbrotRenderer } from './renderer.js';
 import Recorder from './recorder.js';
 import { availableProblems } from './problem.js';
@@ -33,7 +33,9 @@ const App = new class {
 
 		this.availableProblems = availableProblems;
 
-		this.simulation = new Simulation({size: this.worldSize});
+		// this.simulation = new Simulation({size: this.worldSize});
+		this.simulation = new ParticleSimulation({size: this.worldSize});
+		
 		this.recorder = new Recorder({recordInterval: 2});
 		this.graphPanel = new GraphPanel({panel: document.querySelector('.UIPanel.graphPanel')});
 		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.simulation, this);

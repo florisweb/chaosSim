@@ -1,6 +1,6 @@
 import { Vector2D } from './vector.js';
 import { createElement, setTextToElement, wait } from './polyfill.js';
-import Simulation from './simulation.js';
+import { Simulation } from './simulation.js';
 import { BaseObjectRenderer } from './renderer.js';
 
 class Page {

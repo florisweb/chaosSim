@@ -55,6 +55,7 @@ export default class SimulationPanel extends Panel {
 	}
 
 	#updateControlLegend(_simulation) {
+		return; // FIXME
 		this.HTML.controlLegend.panel.innerHTML = '';
 		this.HTML.controlLegend.panel.classList.toggle('hide', _simulation.potentialTypes.length === 0);
 

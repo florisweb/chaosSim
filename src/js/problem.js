@@ -423,7 +423,25 @@ export class MandelbrotProblem extends Problem {
 
 
 
-export const availableProblems = [new MandelbrotProblem, new AuxeticMaterialProblem, new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
+import { ParticleSimulation } from './simulation.js';
+import { ParticleSimRenderer } from './renderer.js';
+export class ParticleLifeProblem extends Problem {
+	name = 'Particle-life Sim';
+	customRenderer = ParticleSimRenderer;
+	customSimulator = ParticleSimulation;
+	
+	constructor({parameters} = {}) {
+		super({parameters});
+	}
+
+	setup(simulation) {
+		// simulation.particleDataArr = [[0.1, 0.1, 0, 0], [0.5, 0.5, 0, 0]];
+	}
+}
+
+
+
+export const availableProblems = [new ParticleLifeProblem, new MandelbrotProblem, new AuxeticMaterialProblem, new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
 
 
 
