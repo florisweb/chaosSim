@@ -263,14 +263,28 @@ export class ParticleSimulation extends BaseSimulation {
 	constructor() {
 		super(...arguments);
 		this.config.particleSize = 0.005;
+		// this.config.maxDt = 0.05;
 
 
 		// this.particleDataArr = [[0.2, 0.1, 0, 0], [0.1, 0.1, 0, 0]];
 		// this.particleDataArr = [[0.2, 0.1, 0.1, 0]];
 
-		for (let i = 0; i < 500; i++)
+		for (let i = 0; i < 1000; i++)
 		{
-			this.particleVelPosDataArr.push([Math.random(), Math.random(), 0, 0]);
+			let pos = [Math.random(), Math.random()];
+			let distSquared = Math.min(...this.particleVelPosDataArr.map(r => (r[0] - pos[0])**2 + (r[1] - pos[1])**2));
+			let attempts = 100;
+			while (distSquared < (this.config.particleSize * 2 * 2)**2 && attempts > 0)
+			{
+				pos = [Math.random(), Math.random()];
+				distSquared = Math.min(...this.particleVelPosDataArr.map(r => (r[0] - pos[0])**2 + (r[1] - pos[1])**2));
+				attempts--;
+			}
+			if (attempts < 0) {
+				console.warn('Could not find a spot for a new particle: stopping at particle: ' + i);
+				break;
+			}
+			this.particleVelPosDataArr.push([...pos, 0, 0]);
 			this.particleConstDataArr.push([Math.floor(Math.random() * 3)]);
 		}
 
@@ -287,6 +301,11 @@ export class ParticleSimulation extends BaseSimulation {
 				[0.002, 0.005, 0.002],
 				[0.002, 0.002, 0.005],
 			];
+			// const epsilonMatrix = [ // epsilonMatrix[ownType][otherType]
+			// 	[0.002, 0.001, 0.0002],
+			// 	[0.001, 0.002, 0.001],
+			// 	[0.001, 0.001, 0.002],
+			// ];
 			const interactionModifiedMatrix = [
 				[1, 1, 1],
 				[1, 1, 1],
@@ -383,7 +402,9 @@ export class ParticleSimulation extends BaseSimulation {
 	runSingleUpdate(_dt) {
 		super.runSingleUpdate(_dt);
 
+		console.time('gpu');
 		this.particleVelPosDataArr = this.updateOnGPU(this.particleVelPosDataArr, this.particleConstDataArr, this.particleVelPosDataArr.length, _dt);
+		console.timeEnd('gpu');
 	};	
 }
 
