@@ -26,7 +26,6 @@ export class Problem {
 		this.simulation = new this.#simulationClass({size: worldSize});
 	}
 	unLoad() {
-		console.log(this.simulation);
 		this.simulation.clear();
 		this.renderer.unLoad();
 	}

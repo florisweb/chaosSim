@@ -32,6 +32,8 @@ export default class SimulationPanel extends Panel {
 	}
 	onProblemChange(_problem) {
 		this.#updateControlLegend(_problem.simulation);
+		this.#onSpeedChange();
+		this.#updateStartStopButtonRunstate();
 	}
 
 	#onStartStopButtonClick() {
@@ -39,11 +41,14 @@ export default class SimulationPanel extends Panel {
 		if (this.#app.simulation.running)
 		{
 			this.#app.simulation.setSpeed(0);
-			this.HTML.startStopButton.setAttribute('runState', '0');
 		} else {
 			this.#app.simulation.setSpeed(parseFloat(this.HTML.speedSelect.value));
-			this.HTML.startStopButton.setAttribute('runState', '1');
 		}
+		this.#updateStartStopButtonRunstate();
+	}
+	#updateStartStopButtonRunstate() {
+		if (!this.#app.simulation) return;
+		this.HTML.startStopButton.setAttribute('runState', this.#app.simulation.running ? '1' : '0');
 	}
 
 	#onSpeedChange() {
