@@ -9,6 +9,6 @@ export default class HeaderPanel extends Panel {
 	}
 
 	onProblemChange(_problem) {
-		setTextToElement(this.HTML.problemName, _problem?.name || '');
+		setTextToElement(this.HTML.problemName, _problem?.constructor.name || '');
 	}
 }

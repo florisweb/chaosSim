@@ -44,6 +44,11 @@ class BaseRenderer {
 			this.size.y / this.viewSize.y, // [use same scalar as x for non-squased graph]  // this.size.x / simulationSize.x
 			this.size.y / this.viewSize.y // [use same scalar as x for non-squased graph]  // 
 		);
+
+		if (!this.preDrawCanvas) return;
+
+		this.preDrawCanvas.width = this.size.x;
+		this.preDrawCanvas.height = this.size.y;
 	}
 
 	// Better place to put the preDrawContext-func?
@@ -66,6 +71,7 @@ class BaseRenderer {
 		    );
 		    this.closePath();
 		}
+		this.onResize();
 	}
 
 	draw() {}

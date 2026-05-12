@@ -19,11 +19,9 @@ export default class ControlPanel extends Panel {
 		this.potentialRenderer.onResize();
 	}
 
-	onProblemChange(_problem, _simulation) {
-		return;// FIXME
-
+	onProblemChange(_problem) {
 		this.HTML.constantsContents.innerHTML = '';
-		let constObjects = this.#renderObject(_problem.constants);
+		let constObjects = this.#renderObject(_problem.constructor.constants);
 		for (let obj of constObjects) this.HTML.constantsContents.append(obj);
 
 		this.HTML.parameterContents.innerHTML = '';
@@ -31,9 +29,9 @@ export default class ControlPanel extends Panel {
 		for (let obj of paramObjects) this.HTML.parameterContents.append(obj);
 
 
-		let potentialTypes = _simulation.potentialTypes;
-		if (!potentialTypes.length) return;
-		this.renderPotential(_simulation.objects[0].potentials[0]); // TODO
+		let potentialTypes = _problem.simulation.potentialTypes;
+		if (!potentialTypes?.length) return;
+		this.renderPotential(_problem.simulation.objects[0].potentials[0]); // TODO
 	}
 
 	#renderObject(_obj) {

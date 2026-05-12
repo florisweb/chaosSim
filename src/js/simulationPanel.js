@@ -2,12 +2,10 @@ import Panel from './panel.js';
 import { setTextToElement, createElement } from './polyfill.js';
 
 export default class SimulationPanel extends Panel {
-	#simulation;
 	#app;
-	constructor({panel}, _simulation, _app) {
+	constructor({panel}, _app) {
 		super({panel});
 		this.#app = _app;
-		this.#simulation = _simulation;
 		this.HTML.controlLegend = {
 			panel: panel.querySelector('.controlLegendPanel')
 		}
@@ -32,17 +30,18 @@ export default class SimulationPanel extends Panel {
 	update(_simulation) {
 		setTextToElement(this.HTML.curTime, Math.round(_simulation.time) + 's [' + Math.round(_simulation.relativeSpeed * 10) / 10 + ']');
 	}
-	onProblemChange(_problem, _simulation) {
-		this.#updateControlLegend(_simulation);
+	onProblemChange(_problem) {
+		this.#updateControlLegend(_problem.simulation);
 	}
 
 	#onStartStopButtonClick() {
-		if (this.#simulation.running)
+		if (!this.#app.simulation) return;
+		if (this.#app.simulation.running)
 		{
-			this.#simulation.setSpeed(0);
+			this.#app.simulation.setSpeed(0);
 			this.HTML.startStopButton.setAttribute('runState', '0');
 		} else {
-			this.#simulation.setSpeed(parseFloat(this.HTML.speedSelect.value));
+			this.#app.simulation.setSpeed(parseFloat(this.HTML.speedSelect.value));
 			this.HTML.startStopButton.setAttribute('runState', '1');
 		}
 	}
@@ -50,16 +49,16 @@ export default class SimulationPanel extends Panel {
 	#onSpeedChange() {
 		let newSpeed = parseFloat(this.HTML.speedSelect.value);
 		setTextToElement(this.HTML.speedIndicator, newSpeed + 'x');
-		if (!this.#simulation.running) return;
-		this.#simulation.setSpeed(newSpeed);
+		if (!this.#app.simulation?.running) return;
+		this.#app.simulation.setSpeed(newSpeed);
 	}
 
 	#updateControlLegend(_simulation) {
-		return; // FIXME
 		this.HTML.controlLegend.panel.innerHTML = '';
-		this.HTML.controlLegend.panel.classList.toggle('hide', _simulation.potentialTypes.length === 0);
+		const potentialTypes = _simulation.potentialTypes ? _simulation.potentialTypes : [];
+		this.HTML.controlLegend.panel.classList.toggle('hide', potentialTypes.length === 0);
 
-		for (let potType of _simulation.potentialTypes)
+		for (let potType of potentialTypes)
 		{
 			let el = createElement('div', 'potType');
 			setTextToElement(el, potType.type);

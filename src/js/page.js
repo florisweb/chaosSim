@@ -39,15 +39,34 @@ class Page {
 
 
 
+
+
+
+import GraphPanel from './graphPanel.js';
+import SimulationPanel from './simulationPanel.js';
+import HeaderPanel from './headerPanel.js';
+import ControlPanel from './controlPanel.js';
+
 export class SimulationPage extends Page {
 	#App;
 	constructor({HTML}, _app) {
 		super(...arguments);
 		this.#App = _app;
+		this.graphPanel = new GraphPanel({panel: document.querySelector('.UIPanel.graphPanel')});
+		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.#App);
+		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this.#App);
+		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
 	}
 	onOpen(_problem) {
 		if (!_problem) return;
 		this.#App.loadProblem(_problem);
+	}
+	onProblemChange(_problem) {
+		this.graphPanel.clear();
+		this.graphPanel.onProblemChange(_problem);
+		this.headerPanel.onProblemChange(_problem);
+		this.controlPanel.onProblemChange(_problem);
+		this.simulationPanel.onProblemChange(_problem);
 	}
 }
 
@@ -64,20 +83,15 @@ export class ProjectSelectionPage extends Page {
 	onOpen() {}
 
 
-	updateProblemList(_problems) {
+	updateProblemList(_problemClasses) {
 		this.HTML.projectHolder.innerHTML = '';
-		for (let problem of _problems)
+		for (let problemClass of _problemClasses)
 		{
-			this.HTML.projectHolder.appendChild(this.#renderProblem(problem));
+			this.HTML.projectHolder.appendChild(this.#renderProblem(problemClass));
 		}
 	}
 
-	#renderProblem(_problem) {
-		const size = new Vector2D(50, 50);
-		const simulation = new Simulation({size: size});
-		_problem.setup(simulation);
-		simulation.setup();
-
+	#renderProblem(_problemClass) {
 		let el = createElement('div', 'UIPanel problem');
 		el.innerHTML = `
 			<canvas class='previewCanvas'></canvas>
@@ -85,25 +99,33 @@ export class ProjectSelectionPage extends Page {
 			<div class="subTitle"></div>
 		`;
 
-		setTextToElement(el.children[1], _problem.name);
-		setTextToElement(el.children[2], this.#generateProblemDescriptionText(simulation));
-		el.addEventListener('click', () => App.simulationPage.open(_problem));
+		const size = new Vector2D(50, 50);
+		const problem = new _problemClass();
+		problem.setup({
+			canvas: el.children[0], 
+			viewSize: size,
+			worldSize: size,
+		});
+
+		setTextToElement(el.children[1], _problemClass.name);
+		setTextToElement(el.children[2], this.#generateProblemDescriptionText(problem.simulation));
+		el.addEventListener('click', () => App.simulationPage.open(_problemClass));
 		
-		this.#renderProblemPreview(el.children[0], simulation, _problem);
+		this.#renderProblemPreview(problem);
 		return el;
 	}
 	#generateProblemDescriptionText(_simulation) {
-		let potentials = _simulation.potentialTypes.map(p => p.name);
-		let dynamics = _simulation.getDynamicTypes(_simulation.objects).map(d => d.name);
+		// TODO make the problem generate its description text
+		let potentials = _simulation.potentialTypes ? _simulation.potentialTypes.map(p => p.name) : [];
+		let dynamics = _simulation.getDynamicTypes ? _simulation.getDynamicTypes(_simulation.objects).map(d => d.name) : [];
 		dynamics = dynamics.filter(d => ['SpringDynamic', 'GravityDynamic'].includes(d));
 		return (potentials.length > 0 ? potentials.join(', ') + (dynamics.length ? ' - ' : '') : '') + dynamics.join(', ');
-
 	}
 
-	#renderProblemPreview(_canvas, _simulation, _problem) {
+	#renderProblemPreview(_problem) {
 		wait(0).then(() => {
-			const renderer = new _problem.renderer({canvas: _canvas, viewSize: _simulation.size});
-			renderer.draw(_simulation, {});
+			_problem.renderer.onResize();
+			_problem.renderer.draw(_problem.simulation, {})
 		});
 	}
 } 

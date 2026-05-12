@@ -402,9 +402,7 @@ export class ParticleSimulation extends BaseSimulation {
 	runSingleUpdate(_dt) {
 		super.runSingleUpdate(_dt);
 
-		console.time('gpu');
 		this.particleVelPosDataArr = this.updateOnGPU(this.particleVelPosDataArr, this.particleConstDataArr, this.particleVelPosDataArr.length, _dt);
-		console.timeEnd('gpu');
 	};	
 }
 

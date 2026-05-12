@@ -1,21 +1,35 @@
 import { Vector3D, Vector2D } from './vector.js';
 import { SpringConnector } from './connectors.js';
-import { Renderer } from './renderer.js';
-
+import { Simulation, ParticleSimulation } from './simulation.js';
+import { Renderer, ParticleSimRenderer } from './renderer.js';
 
 export class Problem {
-	name = '';
-	constants = {}
+	static name = '';
+	static constants = {}
 	parameters = {}
-	recordables = [];
-	get renderer() {
-		return this.customRenderer || Renderer;
-	}
+	static recordables = [];
+	get constants() {return this.constructor.constants}
+	get recordables() {return this.constructor.recordables}
 
-	constructor({parameters}) {
+	renderer;
+	simulation;
+
+	#rendererClass;
+	#simulationClass;
+	constructor({parameters, renderer = Renderer, simulation = Simulation}) {
 		this.parameters = {...this.parameters, ...parameters};
+		this.#rendererClass = renderer;
+		this.#simulationClass = simulation;
 	}
-	setup(simulation) {}
+	setup({canvas, viewSize, worldSize}) {
+		this.renderer = new this.#rendererClass({canvas, viewSize});
+		this.simulation = new this.#simulationClass({size: worldSize});
+	}
+	unLoad() {
+		console.log(this.simulation);
+		this.simulation.clear();
+		this.renderer.unLoad();
+	}
 }
 
 
@@ -23,8 +37,8 @@ export class Problem {
 
 import { BucketObject, WheelObject } from './object.js';
 export class ChaoticWaterWheelProblem extends Problem {
-	name = 'Chaotic water wheel';
-	constants = {
+	static name = 'Chaotic water wheel';
+	static constants = {
 		wheel: {
 			radius: 10,
 			position: new Vector2D(20, 25)
@@ -45,7 +59,7 @@ export class ChaoticWaterWheelProblem extends Problem {
 		fillSpeed: 0.055,
 	}
 
-	recordables = [
+	static recordables = [
 		{
 			name: 'angle',
 			get: (_simulation) => _simulation.objects[0].angle
@@ -57,9 +71,11 @@ export class ChaoticWaterWheelProblem extends Problem {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
+
 		let wheel = new WheelObject({position: this.constants.wheel.position, radius: this.constants.wheel.radius})
-		simulation.objects.push(wheel);
+		this.simulation.objects.push(wheel);
 
 		for (let b = 0; b < this.constants.buckets.count; b++)
 		{
@@ -76,8 +92,10 @@ export class ChaoticWaterWheelProblem extends Problem {
 				rotFrictionScalar: this.constants.dynamics.rotFrictionScalar
 			});
 			wheel.connect(bucket, new SpringConnector({k: this.constants.dynamics.springConnStiffness}), offset, new Vector2D(this.constants.buckets.size.x / 2, 0));
-			simulation.objects.push(bucket);
+			this.simulation.objects.push(bucket);
 		}
+
+		this.simulation.setup();
 	}
 }
 
@@ -85,14 +103,14 @@ export class ChaoticWaterWheelProblem extends Problem {
 import { NodeObject, AnchorNodeObject } from './object.js';
 
 export class BridgeProblem extends Problem {
-	name = 'Bridge';
-	constants = {
+	static name = 'Bridge';
+	static constants = {
 		elementCount: 20,
 		leftPolePos: new Vector2D(10, 25),
 		rightPolePos: new Vector2D(40, 20)
 	}
 
-	recordables = [
+	static recordables = [
 		{
 			name: 'yPosCentreNode',
 			get: (_simulation) => _simulation.objects[Math.floor(this.constants.elementCount / 2)].position.y
@@ -108,11 +126,12 @@ export class BridgeProblem extends Problem {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		let leftPole = new AnchorNodeObject({position: this.constants.leftPolePos});
 		let rightPole = new AnchorNodeObject({position: this.constants.rightPolePos});
-		simulation.objects.push(leftPole);
-		simulation.objects.push(rightPole);
+		this.simulation.objects.push(leftPole);
+		this.simulation.objects.push(rightPole);
 
 		let prevPole = leftPole;
 		for (let i = 1; i < this.constants.elementCount - 1; i++)
@@ -120,24 +139,25 @@ export class BridgeProblem extends Problem {
 			let pos = this.constants.leftPolePos.copy().add(this.constants.leftPolePos.difference(this.constants.rightPolePos).scale(i / (this.constants.elementCount - 1)));
 			let pole = new NodeObject({position: pos});
 			pole.connect(prevPole, SpringConnector);
-			simulation.objects.push(pole);
+			this.simulation.objects.push(pole);
 			prevPole = pole;
 		}
 
 		prevPole.connect(rightPole, SpringConnector);
+		this.simulation.setup();
 	}
 }
 
 import { PendulumArm } from './object.js';
 
 export class DoublePendulumProblem extends Problem {
-	name = 'Double Pendulum';
-	constants = {
+	static name = 'Double Pendulum';
+	static constants = {
 		topBarPos: new Vector2D(20, 15),
 		barSize: new Vector2D(10, 0.1)
 	}
 
-	recordables = [
+	static recordables = [
 		{
 			name: 'topAngle',
 			get: (_simulation) => _simulation.objects[0].angle
@@ -153,14 +173,16 @@ export class DoublePendulumProblem extends Problem {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		let topPendulum = new PendulumArm({position: this.constants.topBarPos, size: this.constants.barSize, fixed: true});
 		let bottomPendulum = new PendulumArm({position: this.constants.topBarPos.copy().add(this.constants.barSize), size: this.constants.barSize});
 		bottomPendulum.centreOfRotation = new Vector2D(0, this.constants.barSize.y / 2);
 		topPendulum.connect(bottomPendulum, SpringConnector, new Vector2D(this.constants.barSize.x, this.constants.barSize.y / 2), new Vector2D(0, this.constants.barSize.y / 2));
 
-		simulation.objects.push(topPendulum);
-		simulation.objects.push(bottomPendulum);
+		this.simulation.objects.push(topPendulum);
+		this.simulation.objects.push(bottomPendulum);
+		this.simulation.setup();
 	}
 }
 
@@ -169,13 +191,14 @@ export class DoublePendulumProblem extends Problem {
 import { ChargedParticle, LJParticle } from './object.js';
 
 export class ChargePotentialProblem extends Problem {
-	name = 'Charge Potential';
+	static name = 'Charge Potential';
 	
 	constructor({parameters} = {}) {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		// let particleA = new ChargedParticle({position: new Vector2D(10, 20), charge: -1});
 		// let particleB = new ChargedParticle({position: new Vector2D(10, 30), charge: 1});
 		// let particleC = new ChargedParticle({position: new Vector2D(19, 24), charge: -1});
@@ -196,15 +219,16 @@ export class ChargePotentialProblem extends Problem {
 		}
 
 		
-		simulation.objects = posses.map(p => new ChargedParticle({position: p, charge: Math.random() > 0.5 ? 1 : -1}))
+		this.simulation.objects = posses.map(p => new ChargedParticle({position: p, charge: Math.random() > 0.5 ? 1 : -1}))
+		this.simulation.setup();
 	}
 }
 
 
 export class CrystallizationProblem extends Problem {
-	name = 'Particle Crystal Formation';
+	static name = 'Particle Crystal Formation';
 	
-	constants = {
+	static constants = {
 		grid: {
 			spacing: 3,
 			randomPositionVariation: 0,
@@ -222,7 +246,8 @@ export class CrystallizationProblem extends Problem {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		let spacing = this.constants.grid.spacing;
 		const posVariation = this.constants.grid.randomPositionVariation;
 		const period = 0; //2 * 3.5;
@@ -231,9 +256,10 @@ export class CrystallizationProblem extends Problem {
 			for (let y = 0; y < this.constants.grid.size.y; y++)
 			{
 				let pos = new Vector2D(10 + x * spacing + Math.random() * posVariation, 10 + y * spacing + Math.random() * posVariation);
-				simulation.objects.push(new LJParticle({position: pos, period: this.parameters.potential.period, epsilon: this.parameters.potential.epsilon}))
+				this.simulation.objects.push(new LJParticle({position: pos, period: this.parameters.potential.period, epsilon: this.parameters.potential.epsilon}))
 			}
 		}
+		this.simulation.setup();
 	}
 }
 
@@ -241,18 +267,20 @@ export class CrystallizationProblem extends Problem {
 
 import { ElecDipoleObject } from './object.js';
 export class DipoleProblem extends Problem {
-	name = 'Dipole Test';
+	static name = 'Dipole Test';
 	
 	constructor({parameters} = {}) {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		let dipole1 = new ElecDipoleObject({position: new Vector2D(10, 20), size: new Vector2D(5, 1), angle: Math.PI});
 		let dipole2 = new ElecDipoleObject({position: new Vector2D(10, 15), size: new Vector2D(5, 1)});
 
-		simulation.objects.push(dipole1);
-		simulation.objects.push(dipole2);
+		this.simulation.objects.push(dipole1);
+		this.simulation.objects.push(dipole2);
+		this.simulation.setup();
 	}
 }
 
@@ -263,14 +291,17 @@ export class DipoleProblem extends Problem {
 import { VoronoiRenderer } from './renderer.js';
 
 export class VoronoiProblem extends Problem {
-	name = 'Voronoi render test';
-	customRenderer = VoronoiRenderer;
+	static name = 'Voronoi render test';
 	
 	constructor({parameters} = {}) {
-		super({parameters});
+		super({
+			parameters,
+			renderer: VoronoiRenderer,
+		});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		// let particleA = new AnchorNodeObject({position: new Vector2D(10, 20)});
 		// particleA.id = 'topLeft';
 		// let particleB = new AnchorNodeObject({position: new Vector2D(10, 30)});
@@ -294,10 +325,10 @@ export class VoronoiProblem extends Problem {
 		particleB.id = 'B';
 		let particleC = new AnchorNodeObject({position: new Vector2D(20, 30)});
 		particleC.id = 'C';
-		simulation.objects.push(particleA);
-		simulation.objects.push(particleB);
-		simulation.objects.push(particleC);
-		simulation.objects.push(particleD);
+		this.simulation.objects.push(particleA);
+		this.simulation.objects.push(particleB);
+		this.simulation.objects.push(particleC);
+		this.simulation.objects.push(particleD);
 
 		// for (let i = 0; i < 4; i++)
 		// {
@@ -305,6 +336,7 @@ export class VoronoiProblem extends Problem {
 		// 	let particle = new AnchorNodeObject({position: pos});
 		// 	simulation.objects.push(particle);
 		// }
+		this.simulation.setup();
 	}
 }
 
@@ -312,9 +344,9 @@ export class VoronoiProblem extends Problem {
 import { AuxeticCubeObject, AuxeticPullerObject } from './object.js';
 import { ConstLenSpringConnector } from './connectors.js';
 export class AuxeticMaterialProblem extends Problem {
-	name = 'Auxetic Material';
+	static name = 'Auxetic Material';
 	
-	constants = {
+	static constants = {
 		systemOffset: new Vector2D(10, 10),
 		cubeSize: new Vector2D(1, 1),
 		grid: {
@@ -329,7 +361,7 @@ export class AuxeticMaterialProblem extends Problem {
 		connPointInMiddle: false,
 	}
 
-	recordables = [
+	static recordables = [
 		{
 			name: 'Ey',
 			get: (_simulation) => (_simulation.objects[0].position.y - (this.constants.systemOffset.y + this.constants.grid.size.y * this.constants.grid.spacing)) / (this.constants.grid.size.y * this.constants.grid.spacing),
@@ -349,7 +381,8 @@ export class AuxeticMaterialProblem extends Problem {
 		super({parameters});
 	}
 
-	setup(simulation) {
+	setup() {
+		super.setup(...arguments);
 		let spacing = this.constants.grid.spacing;
 
 		const pullerObject = new AuxeticPullerObject({
@@ -357,7 +390,7 @@ export class AuxeticMaterialProblem extends Problem {
 			size: new Vector2D(this.constants.grid.size.copy().scale(this.constants.grid.spacing).x, 3),
 			density: this.parameters.pullerBlockDensity
 		});
-		simulation.objects.push(pullerObject);
+		this.simulation.objects.push(pullerObject);
 
 		let cubes = [];
 		for (let y = 0; y < this.constants.grid.size.y; y++)
@@ -368,7 +401,7 @@ export class AuxeticMaterialProblem extends Problem {
 			{
 				let pos = this.constants.systemOffset.copy().add(new Vector2D(x * this.constants.grid.spacing, y * this.constants.grid.spacing));
 				let cube = new AuxeticCubeObject({position: pos, size: this.constants.cubeSize, fixed: y === 0})
-				simulation.objects.push(cube);
+				this.simulation.objects.push(cube);
 
 				if (x > 0)
 				{
@@ -405,43 +438,46 @@ export class AuxeticMaterialProblem extends Problem {
 				prevXCube = cube;
 			}
 		}
+		this.simulation.setup();
 	}
 }
 
 
 import { MandelbrotRenderer} from './renderer.js';
 export class MandelbrotProblem extends Problem {
-	name = 'Mandelbrot set';
-	customRenderer = MandelbrotRenderer;
+	static name = 'Mandelbrot set';
 	
 	constructor({parameters} = {}) {
-		super({parameters});
-	}
-
-	setup(simulation) {}
-}
-
-
-
-import { ParticleSimulation } from './simulation.js';
-import { ParticleSimRenderer } from './renderer.js';
-export class ParticleLifeProblem extends Problem {
-	name = 'Particle-life Sim';
-	customRenderer = ParticleSimRenderer;
-	customSimulator = ParticleSimulation;
-	
-	constructor({parameters} = {}) {
-		super({parameters});
+		super({parameters, renderer: MandelbrotRenderer});
 	}
 
 	setup(simulation) {
-		// simulation.particleDataArr = [[0.1, 0.1, 0, 0], [0.5, 0.5, 0, 0]];
+		super.setup(...arguments);
+		this.simulation.setup();
 	}
 }
 
 
 
-export const availableProblems = [new ParticleLifeProblem, new MandelbrotProblem, new AuxeticMaterialProblem, new VoronoiProblem, new CrystallizationProblem, new ChaoticWaterWheelProblem, new ChargePotentialProblem, new BridgeProblem, new DoublePendulumProblem, new DipoleProblem];
+
+export class ParticleLifeProblem extends Problem {
+	static name = 'Particle-life Sim';
+	
+	constructor({parameters} = {}) {
+		super({parameters, simulation: ParticleSimulation, renderer: ParticleSimRenderer});
+	}
+
+	setup(simulation) {
+		super.setup(...arguments);
+		// simulation.particleDataArr = [[0.1, 0.1, 0, 0], [0.5, 0.5, 0, 0]];
+		this.simulation.setup();
+	}
+}
+
+
+
+// export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, VoronoiProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
+export const availableProblems = [ParticleLifeProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
 
 
 
