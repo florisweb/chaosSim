@@ -7,8 +7,8 @@ const gpu = new GPU();
 class BaseSimulation {
 	size = new Vector2D(0, 0);
 	config = {
-		// maxDt: 0.05 // 0.02
-		maxDt: 0.02
+		maxDt: 0, // Only relevant if defaultDt = false
+		defaultDt: false, // False = match with real time (note that this makes the simulation unreliable with regards to reproducability), otherwise use this dt for every time-step
 	}
 	#speed = 0;
 	time = 0;
@@ -48,7 +48,7 @@ class BaseSimulation {
 	update() {
 		let trueDt = (new Date() - this.#lastUpdate) / 1000;
 		let dt = Math.min(trueDt, this.config.maxDt);
-		dt = this.config.maxDt; // If this varies the simulation becomes unreliable (for chaotic systems at least)
+		if (this.config.defaultDt) dt = this.config.defaultDt;
 		
 		if (this.#speed < 1)
 		{
@@ -263,8 +263,6 @@ export class ParticleSimulation extends BaseSimulation {
 	constructor() {
 		super(...arguments);
 		this.config.particleSize = 0.005;
-		// this.config.maxDt = 0.05;
-
 
 		// this.particleDataArr = [[0.2, 0.1, 0, 0], [0.1, 0.1, 0, 0]];
 		// this.particleDataArr = [[0.2, 0.1, 0.1, 0]];
@@ -394,14 +392,11 @@ export class ParticleSimulation extends BaseSimulation {
 				newVelocity[1]
 			];
 		}).setOutput([this.particleVelPosDataArr.length]);
-
-
 	}
 
 
 	runSingleUpdate(_dt) {
 		super.runSingleUpdate(_dt);
-
 		this.particleVelPosDataArr = this.updateOnGPU(this.particleVelPosDataArr, this.particleConstDataArr, this.particleVelPosDataArr.length, _dt);
 	};	
 }

@@ -16,6 +16,11 @@ export class Problem {
 
 	#rendererClass;
 	#simulationClass;
+
+	// --- Sim config ---
+	defaultDt = 0.02; // False = match with real time 
+	maxDt = 0.02; // Only relevant if defaultDt = false
+
 	constructor({parameters, renderer = Renderer, simulation = Simulation}) {
 		this.parameters = {...this.parameters, ...parameters};
 		this.#rendererClass = renderer;
@@ -24,6 +29,8 @@ export class Problem {
 	setup({canvas, viewSize, worldSize}) {
 		this.renderer = new this.#rendererClass({canvas, viewSize});
 		this.simulation = new this.#simulationClass({size: worldSize});
+		this.simulation.config.maxDt = this.maxDt;
+		this.simulation.config.defaultDt = this.defaultDt;
 	}
 	unLoad() {
 		this.simulation.clear();
@@ -237,10 +244,15 @@ export class CrystallizationProblem extends Problem {
 
 	parameters = {
 		potential: {
-			period: 2 * 3,
-			epsilon: 1,
+			period: 2 * 2,
+			epsilon: 3,
 		}
 	}
+	
+	// --- Sim config ---
+	defaultDt = 0.02;
+
+
 	constructor({parameters} = {}) {
 		super({parameters});
 	}

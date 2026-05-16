@@ -74,7 +74,7 @@ export class LJPeriodPotential extends Potential {
 		super({relPos_objCoords}, _object);
 		this.sigma = sigma || 1;
 		this.epsilon = epsilon || 1;
-		this.maxDist = 4 * sigma;
+		this.maxDist = 3 * sigma;
 		this.period = period;
 	}
 
