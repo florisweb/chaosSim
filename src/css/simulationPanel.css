@@ -2,7 +2,7 @@
 .UIPanel.simulationPanel {
 	grid-area: simulationPanel;
 	height: var(--contentHeight);
-	/*min-width: var(--contentHeight);*/
+	
 	aspect-ratio: 1;
 	overflow: hidden;
 }

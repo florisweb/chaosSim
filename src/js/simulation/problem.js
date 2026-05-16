@@ -487,6 +487,14 @@ import { MandelbrotRenderer} from './renderer.js';
 export class MandelbrotProblem extends Problem {
 	static name = 'Mandelbrot set';
 	
+	static documentation = [
+		`The Mandelbrot-set is a set which contains all points on the complex plane, of which the the following equation does not diverge: <br>
+		$f_c(z) = z^2+c$<br>
+		Here $c$ is the initial value, representing the point on the complex plane of which we want to know whether or not it is contained in the Mandelbrot-set, and $z_0=0$. <br>
+		When iterating the function above the value of $z$ either stays bounded, or not. If it does, it belongs to the mandelbrot set, otherwise it does not and it is rendered in red.
+		`
+	];
+
 	constructor({parameters} = {}) {
 		super({parameters, renderer: MandelbrotRenderer});
 	}
@@ -517,7 +525,7 @@ export class ParticleLifeProblem extends Problem {
 
 
 // export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, VoronoiProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
-export const availableProblems = [ParticleLifeProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
+export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
 
 
 

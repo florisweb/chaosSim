@@ -138,8 +138,6 @@ function setup(_config) {
 	}).setOutput([config.pxOutputSize[0] * config.pxOutputSize[1] * 4]);
 
 
-
-	
 	
 	fractalKernel = gpu.createKernel(function(_zoom, _offsetX, _offsetY, _arrSize, _viewSize) {
 		// All position units in perc (0-1)

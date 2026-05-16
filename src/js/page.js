@@ -108,15 +108,17 @@ export class ProjectSelectionPage extends Page {
 			<div class="title"></div>
 			<div class="subTitle"></div>
 		`;
-
-		const problem = new _problemClass();
-		problem.setup({canvas: el.children[0]});
-
 		setTextToElement(el.children[1], _problemClass.name);
-		setTextToElement(el.children[2], this.#generateProblemDescriptionText(problem.simulation));
 		el.addEventListener('click', () => App.simulationPage.open(_problemClass));
-		
-		this.#renderProblemPreview(problem);
+
+		// Wait until the canvas is rendered before defining the problem and its renderer, as it calculates its size from the html-size which only exists after rendering
+		wait(0).then(() => {
+			const problem = new _problemClass();
+			problem.setup({canvas: el.children[0]});
+			setTextToElement(el.children[2], this.#generateProblemDescriptionText(problem.simulation));
+			this.#renderProblemPreview(problem);
+		});
+
 		return el;
 	}
 	#generateProblemDescriptionText(_simulation) {
@@ -128,9 +130,7 @@ export class ProjectSelectionPage extends Page {
 	}
 
 	#renderProblemPreview(_problem) {
-		wait(0).then(() => {
-			_problem.renderer.onResize();
-			_problem.renderer.draw(_problem.simulation, {})
-		});
+		_problem.renderer.onResize();
+		_problem.renderer.draw(_problem.simulation, {})
 	}
 } 
