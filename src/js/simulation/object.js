@@ -1,4 +1,4 @@
-import { Vector2D } from './vector.js';
+import { Vector2D } from '../vector.js';
 
 import { RectangleGeometry, CircleGeometry } from './geometry.js' ;
 import { ArmMaterial, BucketMaterial, WaterMaterial } from './material.js';

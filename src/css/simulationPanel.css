@@ -3,7 +3,7 @@
 	grid-area: simulationPanel;
 	height: var(--contentHeight);
 	min-width: var(--contentHeight);
-	width: 100%;
+	aspect-ratio: 1;
 	overflow: hidden;
 }
 

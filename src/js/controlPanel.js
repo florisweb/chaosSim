@@ -4,7 +4,7 @@ import Panel from './panel.js';
 
 import { Vector2D } from './vector.js';
 import { setTextToElement, createElement } from './polyfill.js';
-import { PotentialRenderer } from './renderer.js';
+import { PotentialRenderer } from './simulation/renderer.js';
 
 
 export default class ControlPanel extends Panel {

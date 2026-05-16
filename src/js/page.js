@@ -1,7 +1,6 @@
 import { Vector2D } from './vector.js';
 import { createElement, setTextToElement, wait } from './polyfill.js';
-import { Simulation } from './simulation.js';
-import { BaseObjectRenderer } from './renderer.js';
+import { Simulation } from './simulation/simulation.js';
 
 class Page {
 	static pages = [];
@@ -49,18 +48,24 @@ import ControlPanel from './controlPanel.js';
 
 export class SimulationPage extends Page {
 	#App;
+	#HTML = {
+		simulationPanel: document.querySelector('.UIPanel.simulationPanel'),
+	}
+
 	constructor({HTML}, _app) {
 		super(...arguments);
 		this.#App = _app;
 		this.graphPanel = new GraphPanel({panel: document.querySelector('.UIPanel.graphPanel')});
-		this.simulationPanel = new SimulationPanel({panel: document.querySelector('.UIPanel.simulationPanel')}, this.#App);
+		this.simulationPanel = new SimulationPanel({panel: this.#HTML.simulationPanel}, this.#App);
 		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this.#App);
 		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
 	}
 	onOpen(_problem) {
 		if (!_problem) return;
 		this.#App.loadProblem(_problem);
+		this.#HTML.simulationPanel.style.aspectRatio = this.#App.problem.renderer.viewSize.y / this.#App.problem.renderer.viewSize.x;
 	}
+
 	onProblemChange(_problem) {
 		this.graphPanel.clear();
 		this.graphPanel.onProblemChange(_problem);

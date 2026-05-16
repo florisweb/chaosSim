@@ -1,4 +1,4 @@
-import { Vector3D, Vector2D } from './vector.js';
+import { Vector3D, Vector2D } from '../vector.js';
 import { GPU } from 'gpu.js';
 const gpu = new GPU();
 

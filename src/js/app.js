@@ -1,12 +1,8 @@
 import { Vector2D, Vector3D } from './vector.js';
-import { Renderer, MandelbrotRenderer } from './renderer.js';
-import Recorder from './recorder.js';
-import { availableProblems } from './problem.js';
-
-
+import Recorder from './simulation/recorder.js';
+import { availableProblems } from './simulation/problem.js';
 
 import { SimulationPage, ProjectSelectionPage } from './page.js';
-
 
 window.Vector2D = Vector2D;
 const App = new class {

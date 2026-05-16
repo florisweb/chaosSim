@@ -1,4 +1,4 @@
-import { Vector3D, Vector2D } from './vector.js';
+import { Vector3D, Vector2D } from '../vector.js';
 import { SpringConnector } from './connectors.js';
 import { Simulation, ParticleSimulation } from './simulation.js';
 import { Renderer, ParticleSimRenderer } from './renderer.js';

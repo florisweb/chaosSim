@@ -1,5 +1,5 @@
-import { Vector3D, Vector2D } from './vector.js';
-import App from './app.js';
+import { Vector3D, Vector2D } from '../vector.js';
+import App from '../app.js';
 import { GPU } from 'gpu.js';
 const gpu = new GPU();
 
