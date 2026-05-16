@@ -8,6 +8,7 @@ export class Problem {
 	static constants = {}
 	parameters = {}
 	static recordables = [];
+	static documentation = [];
 	get constants() {return this.constructor.constants}
 	get recordables() {return this.constructor.recordables}
 
@@ -65,11 +66,16 @@ export class ChaoticWaterWheelProblem extends Problem {
 		fillSpeed: 0.055,
 	}
 
+
 	static recordables = [
 		{
 			name: 'angle',
 			get: (_simulation) => _simulation.objects[0].angle
 		}
+	];
+	static documentation = [
+		`te$st$`,
+		'hey: $y=\\int_{-5}^xx^2-3dx$'
 	];
 
 
@@ -248,6 +254,12 @@ export class CrystallizationProblem extends Problem {
 			epsilon: 3,
 		}
 	}
+	static documentation = [
+		`Each particle has its own potential, given by a modified Leanard Jones potential: <br>`,
+		`$U(r, \\theta) = 4\\epsilon[(\\frac{\\sigma}{r})^{12} - (\\frac{\\sigma}{r})^6\\cos(n\\theta)]$<br>`,
+		'With $\\theta$ the angle, $\\epsilon$ and $\\sigma$ the standard LJ-parameters and $n$ the periodicity of the potential (see rendered potential below).'
+	];
+
 	
 	// --- Sim config ---
 	defaultDt = 0.02;

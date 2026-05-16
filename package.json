@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "gpu.js": "^2.16.0",
+    "katex": "^0.16.47",
     "plotly.js-dist": "^3.3.1"
   }
 }
