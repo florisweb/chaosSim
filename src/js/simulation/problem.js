@@ -406,6 +406,16 @@ export class AuxeticMaterialProblem extends Problem {
 		}
 	];
 
+	static documentation = [
+		`An auxetic material is a material which has a negative poissons ratio: <br>
+		$\\nu = -\\frac{d\\epsilon_y}{d\\epsilon_x} < 0$.<br>
+		With $\\epsilon$ the strain (fraction of deformation with respect to original length: $\\epsilon = \\Delta L / L$).<br>
+		For normal materials, if you let them hang or pull on them, they will become longer in the vertical direction ($d\\epsilon_y > 0$) while becoming thinner in the
+		horizontal direction ($d\\epsilon_x < 0$). This represents a positive poissons ratio. <br>
+		However, auxetic materials are a type of metamaterial which does not follow this trend, instead becoming wider while also becoming longer (see simulation). <br>
+		Therefore its density decreases and its volume increases. One way to achieve this effect is through the specific folding/origami-like geometry simulated here.
+		`
+	];
 
 	constructor({parameters} = {}) {
 		super({parameters});
