@@ -680,7 +680,6 @@ export class MandelbrotRenderer extends BaseRenderer {
 
 		let scalar = this.scalar.scale(1 / this.#potResulution);
 		let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
-		console.log(this.viewSize, viewSize, kernelOutputSize, this.scalar);
 
 		this.workerConfig = {
 			pxOutputSize: kernelOutputSize.value,
@@ -718,7 +717,6 @@ export class MandelbrotRenderer extends BaseRenderer {
 
 	async requestFractalRender() {
 		this.#workerRequest = Promise.withResolvers();
-		console.log(this.camera.zoom, ...this.camera.position.value)
 		this.renderWorker.postMessage({
 			type: 'calcFractal',
 			data: {

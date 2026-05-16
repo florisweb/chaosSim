@@ -32,25 +32,12 @@ const App = new class {
 		this.simulationPage = new SimulationPage({HTML: document.querySelector('.page.simulator')}, this);
 		this.projectSelectionPage = new ProjectSelectionPage({HTML: document.querySelector('.page.projectSelection')}, this);
 
-		
-		let graphUpdateTimeout;
-		let graphUpdateTimeoutLength = 200;
-		this.recorder.onDataChange = (_data) => {
-			if (graphUpdateTimeout) return;
-			graphUpdateTimeout = setTimeout(() => {
-				let startTime = new Date()
-				this.simulationPage.graphPanel.update(_data);
-				let delta = new Date() - startTime;
-				graphUpdateTimeoutLength = delta**1.5 * 0.1;
-				graphUpdateTimeout = null;
-			}, graphUpdateTimeoutLength);
-			// TODO should also reset graphUpdateTimeoutLength back to 200
-		}
 
 
 		this.setup().then(() => document.body.classList.remove('loading'));
 	}
 
+	#graphUpdateTimeout;
 	loadProblem(_problemClass) {
 		if (this.problem) this.problem.unLoad();
 		this.recorder.clear();
@@ -62,6 +49,20 @@ const App = new class {
 		}
 		
 		this.simulationPage.onProblemChange(this.problem);
+
+		clearTimeout(this.#graphUpdateTimeout);
+		let graphUpdateTimeoutLength = 200;
+		this.recorder.onDataChange = (_data) => {
+			if (this.#graphUpdateTimeout) return;
+			this.#graphUpdateTimeout = setTimeout(() => {
+				let startTime = new Date()
+				this.simulationPage.graphPanel.update(_data);
+				let delta = new Date() - startTime;
+				graphUpdateTimeoutLength = delta**1.5 * 0.1;
+				this.#graphUpdateTimeout = null;
+			}, graphUpdateTimeoutLength);
+		}
+
 
 		this.update();
 	}

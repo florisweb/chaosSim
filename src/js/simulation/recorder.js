@@ -11,6 +11,7 @@ export default class Recorder {
 
 	clear() {
 		this.data = [];
+		this.#lastRecordTime = 0;
 	}
 
 	#lastRecordTime = 0;
