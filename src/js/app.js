@@ -21,7 +21,6 @@ const App = new class {
 			renderPotType: ''
 		}
 	}
-	worldSize = new Vector2D(50, 50);
 
 	constructor() {
 		window.App = this;
@@ -57,11 +56,7 @@ const App = new class {
 		this.recorder.clear();
 
 		this.problem = new _problemClass();
-		this.problem.setup({
-			canvas: document.querySelector('#simulationCanvas'), 
-			viewSize: this.worldSize,
-			worldSize: this.worldSize,
-		});
+		this.problem.setup({canvas: document.querySelector('#simulationCanvas')});
 		this.problem.simulation.onUpdate = () => {
 			this.recorder.record(this.simulation, this.problem);
 		}

@@ -22,14 +22,17 @@ export class Problem {
 	defaultDt = 0.02; // False = match with real time 
 	maxDt = 0.02; // Only relevant if defaultDt = false
 
+
+	worldSize = new Vector2D(50, 50);
+
 	constructor({parameters, renderer = Renderer, simulation = Simulation}) {
 		this.parameters = {...this.parameters, ...parameters};
 		this.#rendererClass = renderer;
 		this.#simulationClass = simulation;
 	}
-	setup({canvas, viewSize, worldSize}) {
-		this.renderer = new this.#rendererClass({canvas, viewSize});
-		this.simulation = new this.#simulationClass({size: worldSize});
+	setup({canvas}) {
+		this.renderer = new this.#rendererClass({canvas, viewSize: this.worldSize});
+		this.simulation = new this.#simulationClass({size: this.worldSize});
 		this.simulation.config.maxDt = this.maxDt;
 		this.simulation.config.defaultDt = this.defaultDt;
 	}
@@ -48,7 +51,7 @@ export class ChaoticWaterWheelProblem extends Problem {
 	static constants = {
 		wheel: {
 			radius: 10,
-			position: new Vector2D(20, 25)
+			position: new Vector2D(15, 25)
 		},
 		buckets: {
 			count: 10,
@@ -74,9 +77,13 @@ export class ChaoticWaterWheelProblem extends Problem {
 		}
 	];
 	static documentation = [
-		`te$st$`,
-		'hey: $y=\\int_{-5}^xx^2-3dx$'
+		`This simulation is designed to investigate unstable / chaotic systems. 
+		The chosen system represents a water wheel with [] buckets attached, these buckets leak at a constant rate $\\xi$, and are filled at a rate $\\zeta$ when on top. 
+		As described by the following formula:`,
+		`$\\frac{dV}{dt} = -\\xi + \\zeta H(y - y_{ref})$`,
+		`Here $H(x)$ is the Heaviside step function, which is 1 for $x \\geq 0$ values and 0 for $x < 0$. Here $y_{ref}$ represents the height after which the buckets are being filled.`
 	];
+	worldSize = new Vector2D(30, 50);
 
 
 	constructor({parameters} = {}) {

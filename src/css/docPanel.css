@@ -5,3 +5,6 @@
 	color: var(--mainTextColor);
 	font-size: 12px;
 }
+.documentationPanel .contentHolder {
+	margin-top: 5px;
+}

@@ -66,7 +66,8 @@ export class SimulationPage extends Page {
 	onOpen(_problem) {
 		if (!_problem) return;
 		this.#App.loadProblem(_problem);
-		this.#HTML.simulationPanel.style.aspectRatio = this.#App.problem.renderer.viewSize.y / this.#App.problem.renderer.viewSize.x;
+		this.#HTML.simulationPanel.style.width = 'calc(var(--contentHeight) * ' +  this.#App.problem.renderer.viewSize.x / this.#App.problem.renderer.viewSize.y + ')';
+		this.#HTML.simulationPanel.style.minWidth = this.#HTML.simulationPanel.style.width;
 	}
 
 	onProblemChange(_problem) {
@@ -108,13 +109,8 @@ export class ProjectSelectionPage extends Page {
 			<div class="subTitle"></div>
 		`;
 
-		const size = new Vector2D(50, 50);
 		const problem = new _problemClass();
-		problem.setup({
-			canvas: el.children[0], 
-			viewSize: size,
-			worldSize: size,
-		});
+		problem.setup({canvas: el.children[0]});
 
 		setTextToElement(el.children[1], _problemClass.name);
 		setTextToElement(el.children[2], this.#generateProblemDescriptionText(problem.simulation));
