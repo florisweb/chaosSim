@@ -10,7 +10,6 @@ import { PotentialRenderer } from './simulation/renderer.js';
 export default class ControlPanel extends Panel {
 	constructor({panel}) {
 		super(...arguments);
-		this.HTML.docContents = panel.querySelector('.section.documentation .sectionContents');
 		this.HTML.constantsContents = panel.querySelector('.section.constants .sectionContents');
 		this.HTML.parameterContents = panel.querySelector('.section.parameters .sectionContents');
 		this.HTML.potentialSection = panel.querySelector('.section.potentials'); 
@@ -32,50 +31,11 @@ export default class ControlPanel extends Panel {
 		let paramObjects = this.#renderObject(_problem.parameters);
 		for (let obj of paramObjects) this.HTML.parameterContents.append(obj);
 
-
-		this.#renderDocumentation(_problem.constructor.documentation);	
-
 		let potentialTypes = _problem.simulation.potentialTypes;
 		if (!potentialTypes?.length) return;
 		this.renderPotential(_problem.simulation.objects[0].potentials[0]); // TODO
 	}
 
-	#renderDocumentation(_docs) {
-		this.HTML.docContents.innerHTML = '';
-
-		for (let row of _docs)
-		{
-			let elem = document.createElement('div');
-			elem.classList.add('katexWrapper');
-
-			let parts = row.split('$');
-			for (let p = 0; p < parts.length; p++)
-			{
-				let html = parts[p];
-				if (p % 2 == 1)
-				{
-					html = katex.renderToString(parts[p], {
-					    throwOnError: false
-					});
-				}
-				elem.innerHTML += html;
-			}
-
-
-
-
-
-			// katex.render(row, elem, {
-			//     throwOnError: false
-			// });
-			// var html = katex.renderToString(row, {
-			//     throwOnError: false
-			// });
-			// elem.innerHTML = html;
-
-			this.HTML.docContents.append(elem);
-		}
-	}
 
 	#renderObject(_obj) {
 		let objects = [];

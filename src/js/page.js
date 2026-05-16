@@ -45,11 +45,13 @@ import GraphPanel from './graphPanel.js';
 import SimulationPanel from './simulationPanel.js';
 import HeaderPanel from './headerPanel.js';
 import ControlPanel from './controlPanel.js';
+import DocumentationPanel from './docPanel.js';
 
 export class SimulationPage extends Page {
 	#App;
 	#HTML = {
 		simulationPanel: document.querySelector('.UIPanel.simulationPanel'),
+		documentationPanel: document.querySelector('.UIPanel.documentationPanel'),
 	}
 
 	constructor({HTML}, _app) {
@@ -59,6 +61,7 @@ export class SimulationPage extends Page {
 		this.simulationPanel = new SimulationPanel({panel: this.#HTML.simulationPanel}, this.#App);
 		this.headerPanel = new HeaderPanel({panel: document.querySelector('.UIPanel.headerPanel')}, this.#App);
 		this.controlPanel = new ControlPanel({panel: document.querySelector('.UIPanel.controlPanel')});
+		this.documentationPanel = new DocumentationPanel({panel: this.#HTML.documentationPanel});
 	}
 	onOpen(_problem) {
 		if (!_problem) return;
@@ -72,6 +75,7 @@ export class SimulationPage extends Page {
 		this.headerPanel.onProblemChange(_problem);
 		this.controlPanel.onProblemChange(_problem);
 		this.simulationPanel.onProblemChange(_problem);
+		this.documentationPanel.onProblemChange(_problem);
 	}
 }
 
