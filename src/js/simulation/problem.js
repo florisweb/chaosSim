@@ -524,9 +524,11 @@ export class ParticleLifeProblem extends Problem {
 
 
 export class DiffusionProblem extends Problem {
-	static name = 'Diffusion test';
+	static name = 'Cahn Hilliard Phase Seperation';
 
-	worldSize = new Vector2D(250, 250);
+	// worldSize = new Vector2D(250, 250);
+	// worldSize = new Vector2D(50, 50);
+	worldSize = new Vector2D(100, 100);
 	
 	constructor({parameters} = {}) {
 		super({parameters, simulation: GridSimulation, renderer: GridRenderer});

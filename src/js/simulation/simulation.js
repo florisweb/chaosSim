@@ -422,30 +422,112 @@ export class GridSimulation extends BaseSimulation {
 			this.dataGrid[y] = [];
 			for (let x = 0; x < this.size.x; x++)
 			{
-				this.dataGrid[y][x] = Math.random() * 0.5;
+				this.dataGrid[y][x] = 0.5 + (0.01 - 2 * Math.random() * 0.01);
 			}
 		}
 
+		// ---- PURE DIFFUSION ---- 
+		// this.updateOnGPU = gpu.createKernel(function(_grid, _size, _dt) {
+		// 	const x = this.thread.x;
+		// 	const y = this.thread.y;
+		// 	const D = 1;
+		// 	const gridSpacing = 1;
 
+		// 	let selfVal = _grid[y][x];
+		
+		// 	const leftNeighbour = x > 0 ? _grid[y][x - 1] : _grid[y][_size[0] - 1];
+		// 	const rightNeighbour = x < _size[0] - 1 ? _grid[y][x + 1] : _grid[y][0];
+		// 	const topNeighbour = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
+		// 	const bottomNeighbour = y < _size[1] - 1 ? _grid[y + 1][x] : _grid[0][x];
+
+		// 	const phiddx = (rightNeighbour - 2 * selfVal + leftNeighbour) / (2 * gridSpacing);
+		// 	const phiddy = (bottomNeighbour - 2 * selfVal + topNeighbour) / (2 * gridSpacing);
+
+		// 	let dPhi = D * (phiddx + phiddy);
+
+		// 	return selfVal + dPhi * _dt;
+		// }).setOutput([this.dataGrid[0].length, this.dataGrid.length]);
+
+		// TODO generate a chemical potential texture first and recalculate over that: much more efficient
 		this.updateOnGPU = gpu.createKernel(function(_grid, _size, _dt) {
 			const x = this.thread.x;
 			const y = this.thread.y;
-			const D = 1;
+			const D = 3;
+			const chi = 2.3;
 			const gridSpacing = 1;
+			const kappa = 0.1;
 
-			let selfVal = _grid[y][x];
-		
-			const leftNeighbour = x > 0 ? _grid[y][x - 1] : _grid[y][_size[0] - 1];
-			const rightNeighbour = x < _size[0] - 1 ? _grid[y][x + 1] : _grid[y][0];
-			const topNeighbour = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
-			const bottomNeighbour = y < _size[1] - 1 ? _grid[y + 1][x] : _grid[0][x];
+	
+			const phi = _grid[y][x];
+			const phiN = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
+			const phiE = x < _size[0] - 1 ? _grid[y][x + 1] : _grid[y][0];
+			const phiS = y < _size[1] - 1 ? _grid[y + 1][x] : _grid[0][x];
+			const phiW = x > 0 ? _grid[y][x - 1] : _grid[y][_size[0] - 1];
 
-			const phiddx = (rightNeighbour - 2 * selfVal + leftNeighbour) / (2 * gridSpacing);
-			const phiddy = (bottomNeighbour - 2 * selfVal + topNeighbour) / (2 * gridSpacing);
+			const phiNN = y > 1 ? _grid[y - 2][x] : _grid[(_size[1] - 1) - 1 + y][x];
+			const phiEE = x < _size[0] - 2 ? _grid[y][x + 2] : _grid[y][1 - ((_size[0] - 1) - x)];
+			const phiSS = y < _size[1] - 2 ? _grid[y + 2][x] : _grid[1 - ((_size[1] - 1) - y)][x];
+			const phiWW = x > 1 ? _grid[y][x - 2] : _grid[y][(_size[0] - 1) - 1 + x];
 
-			let dPhi = D * (phiddx + phiddy);
+			const phiNE = y > 0 ? (
+					x < _size[0] - 1 ? _grid[y - 1][x + 1] : _grid[y - 1][0]
+				) : (
+					x < _size[0] - 1 ? _grid[_size[1] - 1][x + 1] : _grid[_size[1] - 1][0]
+				);
+			const phiNW = y > 0 ? (
+					x > 0 ? _grid[y - 1][x - 1] : _grid[y - 1][_size[0] - 1]
+				) : (
+					x > 0 ? _grid[_size[1] - 1][x - 1] : _grid[_size[1] - 1][_size[0] - 1]
+				);
 
-			return selfVal + dPhi * _dt;
+			const phiSE = y < _size[1] - 1 ? (
+					x < _size[0] - 1 ? _grid[y + 1][x + 1] : _grid[y + 1][0]
+				) : (
+					x < _size[0] - 1 ? _grid[0][x + 1] : _grid[0][0]
+				);
+			const phiSW = y < _size[1] - 1 ? (
+					x > 0 ? _grid[y + 1][x - 1] : _grid[y + 1][_size[0] - 1]
+				) : (
+					x > 0 ? _grid[0][x - 1] : _grid[0][_size[0] - 1]
+				);
+			
+
+			const dphidxx = (phiE - 2 * phi + phiW) / (gridSpacing**2);
+			const dphidyy = (phiS - 2 * phi + phiN) / (gridSpacing**2);
+			
+
+			const dphidxxN = (phiNE - 2 * phiN + phiNW) / (gridSpacing**2);
+			const dphidyyN = (phi - 2 * phiN + phiNN) / (gridSpacing**2);
+			
+			const dphidxxE = (phiEE - 2 * phiE + phi) / (gridSpacing**2);
+			const dphidyyE = (phiSE - 2 * phiE + phiNE) / (gridSpacing**2);
+
+			const dphidxxS = (phiSE - 2 * phiS + phiSW) / (gridSpacing**2);
+			const dphidyyS = (phiSS - 2 * phiS + phi) / (gridSpacing**2);
+
+			const dphidxxW = (phi - 2 * phiW + phiWW) / (gridSpacing**2);
+			const dphidyyW = (phiSW - 2 * phiW + phiNW) / (gridSpacing**2);
+
+
+			const mu = (1 + Math.log(phi)) - (1 + Math.log(1 - phi)) + chi * (1 - 2 * phi) - kappa * (dphidxx + dphidyy);
+			const muN = (1 + Math.log(phiN)) - (1 + Math.log(1 - phiN)) + chi * (1 - 2 * phiN) - kappa * (dphidxxN + dphidyyN);
+			const muE = (1 + Math.log(phiE)) - (1 + Math.log(1 - phiE)) + chi * (1 - 2 * phiE) - kappa * (dphidxxE + dphidyyE);
+			const muS = (1 + Math.log(phiS)) - (1 + Math.log(1 - phiS)) + chi * (1 - 2 * phiS) - kappa * (dphidxxS + dphidyyS);
+			const muW = (1 + Math.log(phiW)) - (1 + Math.log(1 - phiW)) + chi * (1 - 2 * phiW) - kappa * (dphidxxW + dphidyyW);
+
+
+
+			const dphidx = (phiE - phiW) / (2 * gridSpacing);
+			const dphidy = (phiS - phiN) / (2 * gridSpacing);
+			const ddmudxx = (muE - 2 * mu + muW) / (gridSpacing**2);
+			const ddmudyy = (muS - 2 * mu + muN) / (gridSpacing**2);
+
+			const dmudx = (muE - muW) / (2 * gridSpacing);
+			const dmudy = (muS - muN) / (2 * gridSpacing);
+
+			let dPhidt = D * (dphidx + dphidy) * (dmudx + dmudy) + D * phi * (ddmudxx + ddmudyy);
+
+			return phi + dPhidt * _dt;
 		}).setOutput([this.dataGrid[0].length, this.dataGrid.length]);
 	}
 
