@@ -1,7 +1,7 @@
 import { Vector3D, Vector2D } from '../vector.js';
 import { SpringConnector } from './connectors.js';
-import { Simulation, ParticleSimulation } from './simulation.js';
-import { Renderer, ParticleSimRenderer } from './renderer.js';
+import { Simulation, ParticleSimulation, GridSimulation } from './simulation.js';
+import { Renderer, ParticleSimRenderer, GridRenderer } from './renderer.js';
 
 export class Problem {
 	static name = '';
@@ -523,9 +523,25 @@ export class ParticleLifeProblem extends Problem {
 }
 
 
+export class DiffusionProblem extends Problem {
+	static name = 'Diffusion test';
+
+	worldSize = new Vector2D(250, 250);
+	
+	constructor({parameters} = {}) {
+		super({parameters, simulation: GridSimulation, renderer: GridRenderer});
+	}
+
+	setup(simulation) {
+		super.setup(...arguments);
+		this.simulation.setup();
+	}
+}
+
+
 
 // export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, VoronoiProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
-export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
+export const availableProblems = [ParticleLifeProblem, DiffusionProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
 
 
 

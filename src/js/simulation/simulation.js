@@ -407,3 +407,52 @@ export class ParticleSimulation extends BaseSimulation {
 
 
 
+export class GridSimulation extends BaseSimulation {
+
+	dataGrid = [];
+	updateOnGPU;
+
+	constructor() {
+		super(...arguments);
+		this.config.particleSize = 0.005;
+
+
+		for (let y = 0; y < this.size.y; y++)
+		{
+			this.dataGrid[y] = [];
+			for (let x = 0; x < this.size.x; x++)
+			{
+				this.dataGrid[y][x] = Math.random() * 0.5;
+			}
+		}
+
+
+		this.updateOnGPU = gpu.createKernel(function(_grid, _size, _dt) {
+			const x = this.thread.x;
+			const y = this.thread.y;
+			const D = 1;
+			const gridSpacing = 1;
+
+			let selfVal = _grid[y][x];
+		
+			const leftNeighbour = x > 0 ? _grid[y][x - 1] : _grid[y][_size[0] - 1];
+			const rightNeighbour = x < _size[0] - 1 ? _grid[y][x + 1] : _grid[y][0];
+			const topNeighbour = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
+			const bottomNeighbour = y < _size[1] - 1 ? _grid[y + 1][x] : _grid[0][x];
+
+			const phiddx = (rightNeighbour - 2 * selfVal + leftNeighbour) / (2 * gridSpacing);
+			const phiddy = (bottomNeighbour - 2 * selfVal + topNeighbour) / (2 * gridSpacing);
+
+			let dPhi = D * (phiddx + phiddy);
+
+			return selfVal + dPhi * _dt;
+		}).setOutput([this.dataGrid[0].length, this.dataGrid.length]);
+	}
+
+
+	runSingleUpdate(_dt) {
+		super.runSingleUpdate(_dt);
+		this.dataGrid = this.updateOnGPU(this.dataGrid, [this.dataGrid[0].length, this.dataGrid.length], _dt);
+	};	
+}
+
