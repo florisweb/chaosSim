@@ -422,9 +422,16 @@ export class GridSimulation extends BaseSimulation {
 			this.dataGrid[y] = [];
 			for (let x = 0; x < this.size.x; x++)
 			{
-				this.dataGrid[y][x] = 0.5 + (0.01 - 2 * Math.random() * 0.01);
+				// this.dataGrid[y][x] = 0.4 + (0.01 - 2 * Math.random() * 0.01);
+				this.dataGrid[y][x] = 0.4 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0);
+				// this.dataGrid[y][x] = 0.5;
 			}
 		}
+			// this.dataGrid[Math.round(this.size.y /2)][Math.round(this.size.x / 2)] += Math.random() * 0.01;
+		// for (let i = 0; i < 3; i++)
+		// {
+		// 	this.dataGrid[Math.round(this.size.y * Math.random())][Math.round(this.size.x * Math.random())] += Math.random() * 0.01;
+		// }
 
 		// ---- PURE DIFFUSION ---- 
 		// this.updateOnGPU = gpu.createKernel(function(_grid, _size, _dt) {
@@ -454,8 +461,10 @@ export class GridSimulation extends BaseSimulation {
 			const y = this.thread.y;
 			const D = 3;
 			const chi = 2.3;
+			// const chi = 2.3 - y / _size[1] * 0.4; //-!! leads to different length-scales at the top due to bc?
 			const gridSpacing = 1;
-			const kappa = 0.1;
+			const kappa = 0.3;
+			// const kappa = 0.05 + y / _size[1] * 0.25;
 
 	
 			const phi = _grid[y][x];

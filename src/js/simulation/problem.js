@@ -526,9 +526,20 @@ export class ParticleLifeProblem extends Problem {
 export class DiffusionProblem extends Problem {
 	static name = 'Cahn Hilliard Phase Seperation';
 
-	// worldSize = new Vector2D(250, 250);
+	static documentation = [
+		`The Cahn Hilliard equation:<br>
+		$\\partial_t\\phi = D\\nabla[\\phi \\nabla\\mu]$<br>
+		with $\\mu = \\partial_\\phi F$ the chemical potential of species 1, and<br>
+		$F = \\phi ln\\phi + (1-\\phi)ln(1-\\phi)+\\Chi\\phi(1-\\phi)-1/2\\kappa(\\nabla \\phi)^2$<br>
+		With the first three terms the Flory Huggins free energy of mixing for a binary, monomeric system, and the last term a term to incorporate the cost of surface area.
+
+
+		`
+	];
+
+	worldSize = new Vector2D(400, 400);
 	// worldSize = new Vector2D(50, 50);
-	worldSize = new Vector2D(100, 100);
+	// worldSize = new Vector2D(100, 100);
 	
 	constructor({parameters} = {}) {
 		super({parameters, simulation: GridSimulation, renderer: GridRenderer});
