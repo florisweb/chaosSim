@@ -427,9 +427,9 @@ export class GridSimulation extends BaseSimulation {
 			dataGrid[y] = [];
 			for (let x = 0; x < this.size.x; x++)
 			{
-				dataGrid[y][x] = 0.5 + (0.01 - 2 * Math.random() * 0.01);
-				// this.dataGrid[y][x] = 0.4 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0);
-				// this.dataGrid[y][x] = 0.5;
+				// dataGrid[y][x] = 0.5 + (0.01 - 2 * Math.random() * 0.01);
+				dataGrid[y][x] = 0.5 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0);
+				// dataGrid[y][x] = 0.5;
 			}
 		}
 
@@ -440,15 +440,12 @@ export class GridSimulation extends BaseSimulation {
 		this.stateTexture = initKernel(dataGrid);
 		this.phiTexture = initKernel(dataGrid);
 
-
-		this.calcMu = gpu.createKernel(function(_grid, _size) {
+		function chemPotKernel(_grid, _size, _params) {
 			const x = this.thread.x;
 			const y = this.thread.y;
-			const chi = 2.3;
-			// const chi = 2.3 - y / _size[1] * 0.4; //-!! leads to different length-scales at the top due to bc?
+			const chi = _params[1];
 			const gridSpacing = 1;
-			const kappa = 0.5;
-			// const kappa = 0.05 + y / _size[1] * 0.25;
+			const kappa = _params[2];
 	
 			const phi = _grid[y][x];
 			const phiN = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
@@ -461,16 +458,19 @@ export class GridSimulation extends BaseSimulation {
 
 			const mu = (1 + Math.log(phi)) - (1 + Math.log(1 - phi)) + chi * (1 - 2 * phi) - kappa * (dphidxx + dphidyy);
 			return mu;
-		})
+		}
+
+
+		this.calcMu = gpu.createKernel(chemPotKernel)
 			.setOutput(this.size.value)
 			.setPipeline(true)
 			.setImmutable(true);
 
 
-		this.updateOnGPU = gpu.createKernel(function(_grid, _muGrid, _size, _dt) {
+		this.updateOnGPU = gpu.createKernel(function(_grid, _muGrid, _size, _params, _dt) {
 			const x = this.thread.x;
 			const y = this.thread.y;
-			const D = 3;
+			const D = _params[0];
 			const gridSpacing = 1;
 	
 			const phi = _grid[y][x];
@@ -506,10 +506,14 @@ export class GridSimulation extends BaseSimulation {
 
 	runSingleUpdate(_dt) {
 		super.runSingleUpdate(_dt);
-		// this.dataGrid = this.updateOnGPU(this.dataGrid, [this.dataGrid[0].length, this.dataGrid.length], _dt);
-		// let newStateTexture = this.updateOnGPU(this.stateTexture, this.size.value, _dt);
-		let muTexture = this.calcMu(this.stateTexture, this.size.value);
-		let newStateTexture = this.updateOnGPU(this.stateTexture, muTexture, this.size.value, _dt);
+		const parameters = {
+			D: 3,
+			chi: 2.3,
+			kappa: 0.5
+		}
+
+		let muTexture = this.calcMu(this.stateTexture, this.size.value, Object.values(parameters));
+		let newStateTexture = this.updateOnGPU(this.stateTexture, muTexture, this.size.value, Object.values(parameters), _dt);
 		muTexture.delete();
 		this.stateTexture.delete();
 		this.stateTexture = newStateTexture;
