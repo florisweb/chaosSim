@@ -624,10 +624,15 @@ class VoronoiLine {
 
 
 
+
+
 export class MandelbrotRenderer extends BaseRenderer {
-	#potResulution = 1; // 2x2 'pixels' - must be integer
+	#potResulution = 2; // 2x2 'pixels' - must be integer
 	renderWorker;
 	workerConfig = {};
+	
+	#scaleCanv;
+	#scaleCanvCtx;
 
 	camera = new class {
 		zoom = 3;
@@ -673,58 +678,54 @@ export class MandelbrotRenderer extends BaseRenderer {
 		}
 
 
-		this._createPreDrawContext();
 
-		this.renderWorker = new Worker(new URL("./renderWorker.js", import.meta.url));
-		this.renderWorker.onmessage = (e) => this.#handleWorkerMessage(e.data);
 
 		let scalar = this.scalar.scale(1 / this.#potResulution);
-		let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
+		this.kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
 
-		this.workerConfig = {
-			pxOutputSize: kernelOutputSize.value,
-			viewSize: viewSize.value
-		}
-		this.renderWorker.postMessage({
-			type: 'setup',
-			data: this.workerConfig
-		});
-	}
+		this.renderOnGPU = gpu.createKernel(function(_zoom, _offsetX, _offsetY, _outputSize) {
+			const steps = 3000;
+			
+			// All position units in perc (0-1)
+			let x = this.thread.x / _outputSize[0];
+			let y = this.thread.y / _outputSize[1];
 
-	unLoad() {
-		this.renderWorker.terminate();
-		// Remove listeners
-	}
+			let c = [(x - 0.5) * _zoom + _offsetX, (y - 0.5) * _zoom - _offsetY]; // [real, imag]
+			let z = c;
 
-	
-	#handleWorkerMessage(_message) {
-		switch (_message.type) 
-		{
-			case "fractalResult":
-				const imgData = new ImageData(_message.data, this.workerConfig.pxOutputSize[0], this.workerConfig.pxOutputSize[1]);
-				this.#workerRequest.resolve(imgData);	
-			break;
-		}
+			for (let i = 0; i < steps; i++)
+			{
+				let real = z[0] * z[0] - z[1] * z[1] + c[0];
+				z[1] = z[0] * z[1] + z[1] * z[0] + c[1];
+				z[0] = real;
+
+				if (Math.abs(z[0]) <= 2 && Math.abs(z[1]) <= 2) continue;
+				let angle = Math.atan((c[1] - z[1])/(c[0] - z[0]));
+				this.color(1 - i / steps, 0, i / steps, 1);
+				break;
+			}
+		})
+			.setOutput(this.kernelOutputSize.value)
+		  	.setGraphical(true);
+
+		this.#scaleCanv = document.createElement('canvas');
+		this.#scaleCanv.width = this.kernelOutputSize.x;
+		this.#scaleCanv.height = this.kernelOutputSize.y;
+		this.#scaleCanvCtx = this.#scaleCanv.getContext('2d');
 	}
 
 
 	async draw(_simulation, _renderConfig) {
-		let potPxData = await this.requestFractalRender();
-		this.trueCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.trueCtx.putImageData(potPxData, 0, 0);
-	}
+		this.renderOnGPU(this.camera.zoom, this.camera.position.x, this.camera.position.y, this.kernelOutputSize.value); // Only render on change?
 
-
-	async requestFractalRender() {
-		this.#workerRequest = Promise.withResolvers();
-		this.renderWorker.postMessage({
-			type: 'calcFractal',
-			data: {
-				parameters: [this.camera.zoom, ...this.camera.position.value]
-			}
-		});
-
-		return this.#workerRequest.promise;
+		const pxData = this.renderOnGPU.getPixels(); 
+		const imgData = new ImageData(pxData, this.kernelOutputSize.x, this.kernelOutputSize.y);
+		
+		this.#scaleCanvCtx.putImageData(imgData, 0, 0);  
+		
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.imageSmoothingEnabled = false;       // optional: crisp nearest-neighbor
+		this.ctx.drawImage(this.#scaleCanv, 0, 0, this.canvas.width, this.canvas.height);
 	}
 }
 
