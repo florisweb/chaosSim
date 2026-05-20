@@ -422,8 +422,8 @@ export class GridSimulation extends BaseSimulation {
 			this.dataGrid[y] = [];
 			for (let x = 0; x < this.size.x; x++)
 			{
-				// this.dataGrid[y][x] = 0.4 + (0.01 - 2 * Math.random() * 0.01);
-				this.dataGrid[y][x] = 0.4 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0);
+				this.dataGrid[y][x] = 0.5 + (0.01 - 2 * Math.random() * 0.01);
+				// this.dataGrid[y][x] = 0.4 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0);
 				// this.dataGrid[y][x] = 0.5;
 			}
 		}

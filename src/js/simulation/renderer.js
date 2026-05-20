@@ -810,27 +810,13 @@ export class GridRenderer extends BaseRenderer {
 		super(...arguments);
 
 
-		let scalar = this.scalar.scale(1 / this.#potResulution);
-		console.log(scalar);
-		let kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
 
-		this.renderOnGPU = gpu.createKernel(function(_grid, _arrSize) {
-			const channels = 4;
-
-			let index = this.thread.x;
-			let arrX = (index % (_arrSize[0] * channels)) / channels;
-			let arrY = Math.floor((index / channels - arrX) / _arrSize[1]);
-			const curVal = _grid[arrY][arrX];
-
-			let channel = index % channels;
-			const color = [
-				Math.floor(curVal * 255),
-				0,
-				0,
-				255
-			];
-		    return color[channel];
-		}).setOutput([viewSize.x * viewSize.y * 4]);
+		this.renderOnGPU = gpu.createKernel(function(_grid) {
+			const curVal = _grid[this.thread.y][this.thread.x];
+		    this.color(curVal, 0, 0, 1.0);
+		})
+			.setOutput(viewSize.value)
+		  	.setGraphical(true);
 
 		this.#scaleCanv = document.createElement('canvas');
 		this.#scaleCanv.width = viewSize.x;
@@ -838,25 +824,16 @@ export class GridRenderer extends BaseRenderer {
 		this.#scaleCanvCtx = this.#scaleCanv.getContext('2d');
 	}
 
-	unLoad() {
-		// Remove listeners
-	}
-
-
 
 	async draw(_simulation, _renderConfig) {
-		const pxData = this.renderOnGPU(_simulation.dataGrid, [_simulation.dataGrid[0].length, _simulation.dataGrid.length]);
-		const imgData = new ImageData(new Uint8ClampedArray(pxData), _simulation.dataGrid[0].length, _simulation.dataGrid.length);
-
-
+		this.renderOnGPU(_simulation.dataGrid); // Only render on change?
+		const pxData = this.renderOnGPU.getPixels(); 
+		const imgData = new ImageData(pxData, _simulation.dataGrid[0].length, _simulation.dataGrid.length);
 		
-		this.#scaleCanvCtx.putImageData(imgData, 0, 0);            // no scaling here
+		this.#scaleCanvCtx.putImageData(imgData, 0, 0);  
 		
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.ctx.imageSmoothingEnabled = false;       // optional: crisp nearest-neighbor
 		this.ctx.drawImage(this.#scaleCanv, 0, 0, this.canvas.width, this.canvas.height);
-
 	}
-
-	
 }
