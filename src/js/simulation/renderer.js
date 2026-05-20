@@ -806,12 +806,11 @@ export class GridRenderer extends BaseRenderer {
 	#scaleCanv;
 	#scaleCanvCtx;
 
-	constructor({canvas, viewSize}) {
+	constructor({canvas, viewSize, simulation}) {
 		super(...arguments);
 
-
-
-		this.renderOnGPU = gpu.createKernel(function(_grid) {
+		let _gpu = simulation.gpu; // Take the same gpu-reference as the simulation, otherwise the stateTexture is not available
+		this.renderOnGPU = _gpu.createKernel(function(_grid) {
 			const curVal = _grid[this.thread.y][this.thread.x];
 		    this.color(curVal, 0, 0, 1.0);
 		})
@@ -826,9 +825,11 @@ export class GridRenderer extends BaseRenderer {
 
 
 	async draw(_simulation, _renderConfig) {
-		this.renderOnGPU(_simulation.dataGrid); // Only render on change?
+		// this.renderOnGPU(_simulation.dataGrid); // Only render on change?
+		this.renderOnGPU(_simulation.stateTexture); // Only render on change?
+
 		const pxData = this.renderOnGPU.getPixels(); 
-		const imgData = new ImageData(pxData, _simulation.dataGrid[0].length, _simulation.dataGrid.length);
+		const imgData = new ImageData(pxData, _simulation.size.x, _simulation.size.y);
 		
 		this.#scaleCanvCtx.putImageData(imgData, 0, 0);  
 		

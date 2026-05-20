@@ -31,10 +31,10 @@ export class Problem {
 		this.#simulationClass = simulation;
 	}
 	setup({canvas}) {
-		this.renderer = new this.#rendererClass({canvas, viewSize: this.worldSize});
 		this.simulation = new this.#simulationClass({size: this.worldSize});
 		this.simulation.config.maxDt = this.maxDt;
 		this.simulation.config.defaultDt = this.defaultDt;
+		this.renderer = new this.#rendererClass({canvas, viewSize: this.worldSize, simulation: this.simulation});
 	}
 	unLoad() {
 		this.simulation.clear();
@@ -535,7 +535,7 @@ export class DiffusionProblem extends Problem {
 		`
 	];
 
-	worldSize = new Vector2D(400, 400);
+	worldSize = new Vector2D(1000, 1000);
 	// worldSize = new Vector2D(10, 10);
 	// worldSize = new Vector2D(100, 100);
 	
