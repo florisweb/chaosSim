@@ -580,7 +580,8 @@ export class CahnHilliardPhaseSepProblem extends Problem {
 		`
 	];
 
-	worldSize = new Vector2D(500, 500);
+	// worldSize = new Vector2D(500, 500);
+	worldSize = new Vector2D(100, 100);
 	
 	constructor({parameters} = {}) {
 		super({parameters, simulation: GridSimulation, renderer: GridRenderer});

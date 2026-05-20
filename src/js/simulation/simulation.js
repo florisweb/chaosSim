@@ -421,24 +421,54 @@ export class GridSimulation extends BaseSimulation {
 		super(...arguments);
 
 
-		let dataGrid = [];
-		for (let y = 0; y < this.size.y; y++)
-		{
-			dataGrid[y] = [];
-			for (let x = 0; x < this.size.x; x++)
-			{
-				// dataGrid[y][x] = 0.5 + (0.01 - 2 * Math.random() * 0.01);
-				dataGrid[y][x] = 0.5 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0);
-				// dataGrid[y][x] = 0.5;
-			}
-		}
+		// let dataGrid = [];
+		
+		// for (let y = 0; y < this.size.y; y++)
+		// {
+		// 	dataGrid[y] = [];
+		// 	for (let x = 0; x < this.size.x; x++)
+		// 	{
+		// 		dataGrid[y][x] = [];
+
+		// 		for (let p = 0; p < phis; p++)
+		// 		{
+		// 			// dataGrid[p][y][x] = p === 0 ? (0.5 + (0.01 - 2 * Math.random() * 0.01)) : 0;
+		// 			// dataGrid[y][x][p] = y/this.size.y * 0.5 + x/this.size.x * 0.5;
+		// 			dataGrid[y][x][p] = y/this.size.y * 0.5;
+		// 			// dataGrid[p][y][x] =
+		// 			// 	p === 0 ? (
+		// 			// 	 	0.3 + ((x-this.size.x/2)**2 + (y-this.size.y/2)**2 < 3**2 ? (0.01 - 2 * Math.random() * 0.01) : 0)
+		// 			// 	) : 0;
+		// 			// dataGrid[y][x] = 0.5;
+		// 		}
+		// 	}
+		// }
+	
+			// const initKernel = gpu.createKernel(function (arr) { return arr[this.thread.z][this.thread.y][this.thread.x]; })
+		//   .setOutput([this.size.x, this.size.y, phis])
+		//   .setPipeline(true);
+		// // this.stateTexture = initKernel(dataGrid);
 
 
-		const initKernel = gpu.createKernel(function (arr) { return arr[this.thread.y][this.thread.x]; })
-		  .setOutput(this.size.value)
+
+		const phis = 3;
+		const createInitialTexture = gpu.createKernel(function (width, height, phis) { 
+			// Note GPU-coords are upside down: ie, low y at the bottom
+
+			let x = this.thread.x / (width - 1);
+			let y = this.thread.y / (height - 1);
+			let z = this.thread.z / (phis - 1);
+			return (0.5 + (0.01 - 2 * Math.random() * 0.01));
+		})
+		  .setOutput([this.size.x, this.size.y, phis])
 		  .setPipeline(true);
-		this.stateTexture = initKernel(dataGrid);
-		this.phiTexture = initKernel(dataGrid);
+		// Defining size: x, y, z
+		// Indexing this.stateTexture[z][y][x]
+
+		
+		this.stateTexture = createInitialTexture(this.size.x, this.size.y, phis)		
+
+
 
 		function chemPotKernel(_grid, _size, _params) {
 			const x = this.thread.x;
@@ -446,12 +476,13 @@ export class GridSimulation extends BaseSimulation {
 			const chi = _params[1];
 			const gridSpacing = 1;
 			const kappa = _params[2];
-	
-			const phi = _grid[y][x];
-			const phiN = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
-			const phiE = x < _size[0] - 1 ? _grid[y][x + 1] : _grid[y][0];
-			const phiS = y < _size[1] - 1 ? _grid[y + 1][x] : _grid[0][x];
-			const phiW = x > 0 ? _grid[y][x - 1] : _grid[y][_size[0] - 1];
+			
+			const p = this.thread.z;
+			const phi = _grid[p][y][x];
+			const phiN = y > 0 				? _grid[p][y - 1][x] : _grid[p][_size[1] - 1][x];
+			const phiE = x < _size[0] - 1 	? _grid[p][y][x + 1] : _grid[p][y][0];
+			const phiS = y < _size[1] - 1 	? _grid[p][y + 1][x] : _grid[p][0][x];
+			const phiW = x > 0 				? _grid[p][y][x - 1] : _grid[p][y][_size[0] - 1];
 
 			const dphidxx = (phiE - 2 * phi + phiW) / (gridSpacing**2);
 			const dphidyy = (phiS - 2 * phi + phiN) / (gridSpacing**2);
@@ -462,7 +493,7 @@ export class GridSimulation extends BaseSimulation {
 
 
 		this.calcMu = gpu.createKernel(chemPotKernel)
-			.setOutput(this.size.value)
+			.setOutput([this.size.x, this.size.y, phis])
 			.setPipeline(true)
 			.setImmutable(true);
 
@@ -472,18 +503,19 @@ export class GridSimulation extends BaseSimulation {
 			const y = this.thread.y;
 			const D = _params[0];
 			const gridSpacing = 1;
-	
-			const phi = _grid[y][x];
-			const phiN = y > 0 ? _grid[y - 1][x] : _grid[_size[1] - 1][x];
-			const phiE = x < _size[0] - 1 ? _grid[y][x + 1] : _grid[y][0];
-			const phiS = y < _size[1] - 1 ? _grid[y + 1][x] : _grid[0][x];
-			const phiW = x > 0 ? _grid[y][x - 1] : _grid[y][_size[0] - 1];
+			const p = this.thread.z;
 
-			const mu = _muGrid[y][x];
-			const muN = y > 0 ? _muGrid[y - 1][x] : _muGrid[_size[1] - 1][x];
-			const muE = x < _size[0] - 1 ? _muGrid[y][x + 1] : _muGrid[y][0];
-			const muS = y < _size[1] - 1 ? _muGrid[y + 1][x] : _muGrid[0][x];
-			const muW = x > 0 ? _muGrid[y][x - 1] : _muGrid[y][_size[0] - 1];
+			const phi = _grid[p][y][x];
+			const phiN = y > 0 				? _grid[p][y - 1][x] : _grid[p][_size[1] - 1][x];
+			const phiE = x < _size[0] - 1 	? _grid[p][y][x + 1] : _grid[p][y][0];
+			const phiS = y < _size[1] - 1 	? _grid[p][y + 1][x] : _grid[p][0][x];
+			const phiW = x > 0 				? _grid[p][y][x - 1] : _grid[p][y][_size[0] - 1];
+
+			const mu = _muGrid[p][y][x];
+			const muN = y > 0 				? _muGrid[p][y - 1][x] : _muGrid[p][_size[1] - 1][x];
+			const muE = x < _size[0] - 1 	? _muGrid[p][y][x + 1] : _muGrid[p][y][0];
+			const muS = y < _size[1] - 1 	? _muGrid[p][y + 1][x] : _muGrid[p][0][x];
+			const muW = x > 0 				? _muGrid[p][y][x - 1] : _muGrid[p][y][_size[0] - 1];
 
 
 			const dphidx = (phiE - phiW) / (2 * gridSpacing);
@@ -498,7 +530,7 @@ export class GridSimulation extends BaseSimulation {
 
 			return phi + dPhidt * _dt;
 		})
-			.setOutput(this.size.value)
+			.setOutput([this.size.x, this.size.y, phis])
 			.setPipeline(true)
 			.setImmutable(true);
 	}

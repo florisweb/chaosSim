@@ -874,8 +874,10 @@ export class GridRenderer extends BaseRenderer {
 
 		let _gpu = simulation.gpu; // Take the same gpu-reference as the simulation, otherwise the stateTexture is not available
 		this.renderOnGPU = _gpu.createKernel(function(_grid) {
-			const curVal = _grid[this.thread.y][this.thread.x];
-		    this.color(curVal, 0, 0, 1.0);
+			const curPhi1 = _grid[0][this.thread.y][this.thread.x];
+			const curPhi2 = _grid[1][this.thread.y][this.thread.x];
+			const curPhi3 = _grid[2][this.thread.y][this.thread.x];
+		    this.color(curPhi1, curPhi2, curPhi3, 1.0);
 		})
 			.setOutput(viewSize.value)
 		  	.setGraphical(true);
