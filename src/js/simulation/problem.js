@@ -535,9 +535,7 @@ export class DiffusionProblem extends Problem {
 		`
 	];
 
-	worldSize = new Vector2D(1000, 1000);
-	// worldSize = new Vector2D(10, 10);
-	// worldSize = new Vector2D(100, 100);
+	worldSize = new Vector2D(500, 500);
 	
 	constructor({parameters} = {}) {
 		super({parameters, simulation: GridSimulation, renderer: GridRenderer});
