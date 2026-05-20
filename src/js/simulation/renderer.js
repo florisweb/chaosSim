@@ -11,7 +11,8 @@ class BaseRenderer {
 	scalar = new Vector2D(1, 1);
 	ctx;
 
-	constructor({canvas, viewSize}) {
+	constructor({canvas, viewSize, problem}) {
+		this.problem = problem;
 		this.canvas = canvas;
 		this.viewSize = viewSize;
 		this.ctx = this.canvas.getContext('2d');
@@ -334,6 +335,67 @@ export class Renderer extends BaseObjectRenderer {
 		}
 	}
 }
+
+
+
+export class ForcedVoronoiRenderer extends BaseObjectRenderer {
+	#scaleCanv;
+	#scaleCanvCtx;
+
+	constructor({canvas, viewSize, simulation}) {
+		super(...arguments);
+
+		let _gpu = simulation.gpu; // Take the same gpu-reference as the simulation, otherwise the stateTexture is not available
+		const pxBuffSize = new Vector2D(canvas.width, canvas.height);
+		this.renderOnGPU = _gpu.createKernel(function(_objectPosses, _objectCount, _distExp, _simSize, _pxBuffSize) {
+			const x = (this.thread.x / _pxBuffSize[0]) * _simSize[0];
+			const y = (1 - this.thread.y / _pxBuffSize[1]) * _simSize[1];
+			const distExp = _distExp * 1;
+
+			let closestDist = Infinity;
+			let curClosestObjectIndex = -1;
+
+			for (let p = 0; p < 100; p++)
+			{
+				const deltaCubed = Math.abs(_objectPosses[p][0] - x)**distExp + Math.abs(_objectPosses[p][1] - y)**distExp;
+				if (_objectPosses[p][0] === 0) break;
+				if (deltaCubed > closestDist) continue;
+				closestDist = deltaCubed;
+				curClosestObjectIndex = p;
+			}
+			this.color(0.5, 0, (curClosestObjectIndex + 1) / _objectCount, 1.0);
+		})
+			.setOutput(pxBuffSize.value)
+		  	.setGraphical(true);
+
+		this.#scaleCanv = document.createElement('canvas');
+		this.#scaleCanv.width = pxBuffSize.x;
+		this.#scaleCanv.height = pxBuffSize.y;
+		this.#scaleCanvCtx = this.#scaleCanv.getContext('2d');
+	}
+
+
+	async draw(_simulation, _renderConfig) {
+		// this.renderOnGPU(_simulation.dataGrid); // Only render on change?
+		this.renderOnGPU(_simulation.objects.map(r => r.position.value), _simulation.objects.length, this.problem.parameters.exponent, this.viewSize.value, [this.#scaleCanv.width, this.#scaleCanv.height]); // Only render on change?
+
+		const pxData = this.renderOnGPU.getPixels(); 
+		const imgData = new ImageData(pxData, this.#scaleCanv.width, this.#scaleCanv.height);
+		
+		this.#scaleCanvCtx.putImageData(imgData, 0, 0);  
+		
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.imageSmoothingEnabled = false;       // optional: crisp nearest-neighbor
+		this.ctx.drawImage(this.#scaleCanv, 0, 0, this.canvas.width, this.canvas.height);
+
+		for (let object of _simulation.objects)
+		{
+			this.drawObject(object);
+		}
+
+	}
+}
+
 
 
 
@@ -684,7 +746,7 @@ export class MandelbrotRenderer extends BaseRenderer {
 		this.kernelOutputSize = new Vector2D(Math.ceil(this.viewSize.x * scalar.x), Math.ceil(this.viewSize.y * scalar.y))
 
 		this.renderOnGPU = gpu.createKernel(function(_zoom, _offsetX, _offsetY, _outputSize) {
-			const steps = 3000;
+			const steps = 2500;
 			
 			// All position units in perc (0-1)
 			let x = this.thread.x / _outputSize[0];

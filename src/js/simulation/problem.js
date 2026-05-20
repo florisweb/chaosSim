@@ -1,7 +1,7 @@
 import { Vector3D, Vector2D } from '../vector.js';
 import { SpringConnector } from './connectors.js';
 import { Simulation, ParticleSimulation, GridSimulation } from './simulation.js';
-import { Renderer, ParticleSimRenderer, GridRenderer } from './renderer.js';
+import { Renderer, ParticleSimRenderer, GridRenderer, ForcedVoronoiRenderer } from './renderer.js';
 
 export class Problem {
 	static name = '';
@@ -34,7 +34,7 @@ export class Problem {
 		this.simulation = new this.#simulationClass({size: this.worldSize});
 		this.simulation.config.maxDt = this.maxDt;
 		this.simulation.config.defaultDt = this.defaultDt;
-		this.renderer = new this.#rendererClass({canvas, viewSize: this.worldSize, simulation: this.simulation});
+		this.renderer = new this.#rendererClass({canvas, viewSize: this.worldSize, simulation: this.simulation, problem: this});
 	}
 	unLoad() {
 		this.simulation.clear();
@@ -371,6 +371,51 @@ export class VoronoiProblem extends Problem {
 }
 
 
+export class ForcedVoronoiProblem extends Problem {
+	static name = 'Voronoi Diagram';
+	parameters = {
+		exponent: 2,
+	}
+
+	static documentation = [
+		`A voronoi diagram is a diagram which is coloured in/tiled based on which node is closest. Typically distance is defined as: <br>`,
+		'$r(\\vec{a}, \\vec{b})=\\sqrt{(x_a-x_b)^2+(y_a-y_b)^2}$',
+		`However, the definition of 'distance' can be generalized to the following:`,
+		'$r(\\vec{a}, \\vec{b})=|x_a-x_b|^{\\epsilon}+|y_a-y_b|^{\\epsilon}$',
+		`Here $\\epsilon=2$ yields the same result as the typical pythagorean distance, yet, $\\epsilon=1$ yields the 'New York'-distance, which is the distance one would have to walk on a grid, reminiscent of New York's city-blocks.`
+	];
+	
+	constructor({parameters} = {}) {
+		super({
+			parameters,
+			renderer: ForcedVoronoiRenderer,
+		});
+	}
+
+	setup() {
+		super.setup(...arguments);
+		
+		const minDist = 3;
+		let posses = [];
+		for (let i = 0; i < 10; i++)
+		{
+			let pos = new Vector2D(50, 50).multiply(new Vector2D(Math.random(), Math.random()));
+			while (Math.min(...posses.map(p => p.difference(pos).length)) < minDist)
+			{
+				pos = new Vector2D(50, 50).multiply(new Vector2D(Math.random(), Math.random()));
+			}
+			posses.push(pos);
+		}
+		
+		this.simulation.objects = posses.map(p => new ChargedParticle({position: p, charge: Math.random() > 0.5 ? 1 : -1}))
+		this.simulation.setup();
+	}
+}
+
+
+
+
+
 import { AuxeticCubeObject, AuxeticPullerObject } from './object.js';
 import { ConstLenSpringConnector } from './connectors.js';
 export class AuxeticMaterialProblem extends Problem {
@@ -550,7 +595,7 @@ export class CahnHilliardPhaseSepProblem extends Problem {
 
 
 // export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, VoronoiProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
-export const availableProblems = [ParticleLifeProblem, CahnHilliardPhaseSepProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
+export const availableProblems = [ParticleLifeProblem, ForcedVoronoiProblem, CahnHilliardPhaseSepProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
 
 
 

@@ -18,6 +18,10 @@ class BaseSimulation {
 	updates = 0;
 	time = 0;
 
+	get gpu() {
+		return gpu;
+	}
+
 	get running() {
 		return this.#speed > 0;
 	}
@@ -408,14 +412,10 @@ export class ParticleSimulation extends BaseSimulation {
 
 
 export class GridSimulation extends BaseSimulation {
-
 	dataGrid = [];
 	updateOnGPU;
 
 	stateTexture;
-	get gpu() {
-		return gpu;
-	}
 
 	constructor() {
 		super(...arguments);
