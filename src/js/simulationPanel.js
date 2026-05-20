@@ -9,6 +9,7 @@ export default class SimulationPanel extends Panel {
 		this.HTML.controlLegend = {
 			panel: panel.querySelector('.controlLegendPanel')
 		}
+		this.HTML.canvas = document.querySelector('#simulationCanvas');
 		this.HTML.curTime = panel.querySelector('.text.time')
 		this.HTML.startStopButton = panel.querySelector('.button.startStop');
 		this.HTML.refreshButton = panel.querySelector('.button.refresh');
@@ -34,6 +35,9 @@ export default class SimulationPanel extends Panel {
 		this.#updateControlLegend(_problem.simulation);
 		this.#onSpeedChange();
 		this.#updateStartStopButtonRunstate();
+
+		this.HTML.canvas.style.width = 'calc(var(--contentHeight) * ' + this.#app.problem.renderer.viewSize.x / this.#app.problem.renderer.viewSize.y + ')';
+		this.HTML.canvas.style.minWidth = this.HTML.canvas.style.width;
 	}
 
 	#onStartStopButtonClick() {

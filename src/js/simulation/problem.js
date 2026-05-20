@@ -523,7 +523,7 @@ export class ParticleLifeProblem extends Problem {
 }
 
 
-export class DiffusionProblem extends Problem {
+export class CahnHilliardPhaseSepProblem extends Problem {
 	static name = 'Cahn Hilliard Phase Seperation';
 
 	static documentation = [
@@ -550,7 +550,7 @@ export class DiffusionProblem extends Problem {
 
 
 // export const availableProblems = [ParticleLifeProblem, MandelbrotProblem, AuxeticMaterialProblem, VoronoiProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
-export const availableProblems = [ParticleLifeProblem, DiffusionProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
+export const availableProblems = [ParticleLifeProblem, CahnHilliardPhaseSepProblem, MandelbrotProblem, AuxeticMaterialProblem, CrystallizationProblem, ChaoticWaterWheelProblem, ChargePotentialProblem, BridgeProblem, DoublePendulumProblem, DipoleProblem];
 
 
 
